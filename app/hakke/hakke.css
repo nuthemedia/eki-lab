@@ -1,0 +1,886 @@
+/* 八卦をつくる — scoped styles (hk- prefix) */
+
+.hk-root {
+  --hk-bg: #f5f5f0;
+  --hk-surface: #ffffff;
+  --hk-ink: #2b2e38;
+  --hk-sub: #767b89;
+  --hk-line: #33374a;
+  --hk-border: #e5e5dc;
+  --hk-accent: #5560d8;
+  --hk-accent-soft: #eceefc;
+
+  min-height: 100dvh;
+  background: var(--hk-bg);
+  color: var(--hk-ink);
+  font-feature-settings: "palt";
+}
+
+.hk-frame {
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: max(16px, env(safe-area-inset-top)) clamp(16px, 5vw, 24px)
+    max(16px, env(safe-area-inset-bottom));
+}
+
+/* ---------- sound toggle (全フェーズ共通、右上に浮く) ---------- */
+
+.hk-sound-toggle {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  right: clamp(12px, 5vw, 20px);
+  z-index: 5;
+  appearance: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--hk-sub);
+  transition: color 0.15s ease, transform 0.12s ease;
+}
+
+.hk-sound-toggle:active {
+  transform: scale(0.9);
+}
+
+.hk-sound-toggle[aria-pressed="true"] {
+  color: var(--hk-accent);
+}
+
+/* ---------- home (intro) ---------- */
+
+.hk-home {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(18px, 5vw, 26px);
+  padding-top: clamp(20px, 8vw, 40px);
+  text-align: center;
+}
+
+.hk-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.hk-hero-title {
+  margin: 0;
+  font-size: clamp(38px, 13vw, 56px);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1;
+}
+
+.hk-hero-sub {
+  margin: 0;
+  font-size: clamp(14px, 4vw, 16px);
+  letter-spacing: 0.08em;
+  color: var(--hk-sub);
+}
+
+/* ---------- eyecatch ---------- */
+
+.hk-eyecatch {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.hk-eyecatch-stage {
+  position: relative;
+  width: 100%;
+  height: clamp(180px, 46vw, 220px);
+  border-radius: 24px;
+  background: var(--hk-surface);
+  border: 1px solid var(--hk-border);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hk-eyecatch-figure {
+  position: relative;
+  z-index: 1;
+}
+
+.hk-eyecatch-name {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-height: 1.6em;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.hk-eyecatch-name.is-on {
+  opacity: 1;
+  transform: none;
+}
+
+.hk-eyecatch-symbol {
+  font-size: 22px;
+  color: var(--hk-line);
+}
+
+.hk-eyecatch-kanji {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.hk-eyecatch-reading {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--hk-sub);
+}
+
+.hk-home-cta {
+  min-width: 220px;
+}
+
+/* ---------- learning-stage ladder (numbered vertical stepper) ---------- */
+
+.hk-ladder {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hk-ladder-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  color: var(--hk-sub);
+}
+
+.hk-ladder-num {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hk-ladder-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  text-align: left;
+}
+
+.hk-ladder-label {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+}
+
+.hk-ladder-desc {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--hk-sub);
+}
+
+.hk-ladder-mark {
+  flex: 0 0 auto;
+  display: inline-block;
+}
+
+.hk-ladder-now {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: #fff;
+  background: var(--hk-accent);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+/* current: アクセントで強調 */
+.hk-ladder-item.is-current {
+  color: var(--hk-accent);
+  border-color: var(--hk-accent);
+  background: var(--hk-accent-soft);
+}
+
+.hk-ladder-item.is-current .hk-ladder-num {
+  background: var(--hk-accent);
+  border-color: var(--hk-accent);
+  color: #fff;
+}
+
+.hk-ladder-item.is-current .hk-ladder-label {
+  color: var(--hk-accent);
+}
+
+/* done: 済んだ段。文字は墨、番号とマークは落ち着いた色 */
+.hk-ladder-item.is-done {
+  color: var(--hk-ink);
+}
+
+.hk-ladder-item.is-done .hk-ladder-num {
+  color: var(--hk-sub);
+}
+
+.hk-ladder-item.is-done .hk-ladder-mark {
+  color: var(--hk-accent);
+}
+
+/* locked: 未解放。淡く */
+.hk-ladder-item.is-locked {
+  opacity: 0.5;
+}
+
+/* ---------- eight-trigram progress ---------- */
+
+.hk-tprog {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 8px;
+  font-size: clamp(22px, 7vw, 28px);
+}
+
+.hk-tprog-item {
+  line-height: 1;
+  color: var(--hk-line);
+}
+
+.hk-tprog-item.is-todo {
+  opacity: 0.28;
+}
+
+.hk-tprog-item.is-learned {
+  opacity: 1;
+}
+
+.hk-tprog-item.is-current {
+  color: var(--hk-accent);
+  opacity: 1;
+}
+
+/* ---------- home footer (daily + support) ---------- */
+
+.hk-home-foot {
+  margin-top: auto;
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.hk-daily-link {
+  appearance: none;
+  border: 1px solid var(--hk-border);
+  background: var(--hk-surface);
+  cursor: pointer;
+  color: var(--hk-ink);
+  min-height: 44px;
+  padding: 0 24px;
+  border-radius: 999px;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.hk-daily-link:active {
+  transform: scale(0.97);
+}
+
+.hk-support {
+  display: flex;
+  gap: 20px;
+}
+
+.hk-support-link {
+  appearance: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--hk-sub);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  padding: 6px 4px;
+}
+
+.hk-support-link.is-locked {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ---------- shared buttons ---------- */
+
+.hk-cta {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  min-height: 52px;
+  padding: 0 44px;
+  border-radius: 999px;
+  background: var(--hk-accent);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.hk-cta:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+.hk-intro-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.hk-cta--ghost {
+  background: transparent;
+  color: var(--hk-sub);
+  border: 1px solid var(--hk-border);
+  font-weight: 500;
+  min-height: 46px;
+}
+
+/* トップへ戻るリンク(build / choose / complete で共通) */
+.hk-top-link {
+  appearance: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--hk-sub);
+  padding: 8px 6px;
+  margin: -8px 0 0 -6px;
+}
+
+.hk-top-bar {
+  display: flex;
+}
+
+/* ---------- build screen ---------- */
+
+.hk-build {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 3vw, 18px);
+  min-height: 0;
+}
+
+.hk-dots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.hk-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--hk-border);
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.hk-dot.is-done {
+  background: var(--hk-line);
+  opacity: 0.45;
+}
+
+.hk-dot.is-now {
+  background: var(--hk-accent);
+  transform: scale(1.35);
+}
+
+.hk-guide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 64px;
+}
+
+.hk-guide-label {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--hk-sub);
+  writing-mode: vertical-rl;
+}
+
+.hk-guide .hk-fig {
+  opacity: 0.5;
+}
+
+/* 想起モードの手がかり(漢字・読み・属性) */
+.hk-cue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.hk-cue-kanji {
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.hk-cue-reading {
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: var(--hk-sub);
+}
+
+/* 思い出せないときに、そっと浮かぶお手本 */
+.hk-soft-hint {
+  margin-left: 18px;
+  animation: hk-soft-in 0.9s ease forwards;
+}
+
+.hk-soft-hint .hk-fig {
+  opacity: 1;
+}
+
+@keyframes hk-soft-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.4;
+  }
+}
+
+.hk-stage {
+  position: relative;
+  flex: 1;
+  min-height: 220px;
+  border-radius: 24px;
+  background: var(--hk-surface);
+  border: 1px solid var(--hk-border);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hk-stage-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hk-stage-figure {
+  position: relative;
+  z-index: 1;
+}
+
+.hk-hint {
+  text-align: center;
+  font-size: 13px;
+  color: var(--hk-sub);
+  letter-spacing: 0.12em;
+  min-height: 1.5em;
+}
+
+.hk-buttons {
+  display: flex;
+  gap: 12px;
+  padding-bottom: 4px;
+}
+
+.hk-yy-btn {
+  appearance: none;
+  cursor: pointer;
+  flex: 1;
+  min-height: 76px;
+  border-radius: 20px;
+  border: 1px solid var(--hk-border);
+  background: var(--hk-surface);
+  color: var(--hk-ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  transition: transform 0.12s ease, border-color 0.12s ease,
+    background 0.12s ease;
+}
+
+.hk-yy-btn:active {
+  transform: scale(0.96);
+  border-color: var(--hk-accent);
+  background: var(--hk-accent-soft);
+}
+
+.hk-yy-btn:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.hk-yy-glyph {
+  display: flex;
+  gap: 8px;
+}
+
+.hk-yy-glyph i {
+  display: block;
+  width: 34px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--hk-line);
+}
+
+.hk-yy-glyph.is-yin i {
+  width: 15px;
+}
+
+.hk-yy-label {
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  margin-left: 0.3em;
+  color: var(--hk-sub);
+}
+
+/* ---------- trigram figure ---------- */
+
+.hk-fig {
+  display: flex;
+  flex-direction: column-reverse; /* 配列先頭 = 下爻を画面の一番下に */
+  gap: var(--hk-fig-gap, 12px);
+}
+
+.hk-slot {
+  height: var(--hk-fig-bar, 12px);
+  width: var(--hk-fig-w, 120px);
+  display: flex;
+  justify-content: space-between;
+}
+
+.hk-slot.is-empty {
+  border-radius: 6px;
+  border: 1.5px dashed var(--hk-border);
+}
+
+.hk-bar {
+  height: 100%;
+  border-radius: 6px;
+  background: var(--hk-line);
+}
+
+.hk-bar.is-yang {
+  width: 100%;
+}
+
+.hk-bar.is-yin {
+  width: 43%;
+}
+
+.hk-slot.is-ghost .hk-bar {
+  animation: hk-ghost 0.55s ease forwards;
+}
+
+@keyframes hk-ghost {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  35% {
+    opacity: 0.5;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* ---------- result card ---------- */
+
+.hk-card {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: clamp(18px, 5vw, 28px);
+  text-align: center;
+  background: color-mix(in srgb, var(--hk-surface) 88%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+.hk-card-kanji {
+  font-size: clamp(46px, 14vw, 60px);
+  font-weight: 600;
+  line-height: 1.15;
+  margin: 4px 0 0;
+}
+
+.hk-card-reading {
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  margin-left: 0.3em;
+  color: var(--hk-sub);
+}
+
+.hk-card-nature {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 5px 16px;
+  border-radius: 999px;
+  background: var(--hk-accent-soft);
+  color: var(--hk-accent);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  margin-left: 0.2em;
+}
+
+.hk-card-image {
+  margin: 12px 0 0;
+  font-size: clamp(14px, 3.8vw, 15px);
+  line-height: 1.9;
+  color: var(--hk-ink);
+}
+
+.hk-card-story {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--hk-sub);
+}
+
+.hk-card .hk-cta {
+  margin-top: 18px;
+}
+
+/* ---------- choose (えらぶ) ---------- */
+
+.hk-choices {
+  display: flex;
+  gap: 10px;
+  padding-bottom: 4px;
+}
+
+.hk-choice {
+  appearance: none;
+  cursor: pointer;
+  flex: 1;
+  min-height: 64px;
+  border-radius: 18px;
+  border: 1px solid var(--hk-border);
+  background: var(--hk-surface);
+  color: var(--hk-ink);
+  font-size: 24px;
+  font-weight: 600;
+  transition: transform 0.12s ease, opacity 0.45s ease, border-color 0.12s ease;
+}
+
+.hk-choice:active {
+  transform: scale(0.95);
+  border-color: var(--hk-accent);
+}
+
+.hk-choice.is-faded {
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.hk-choice:disabled:not(.is-faded) {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* ---------- zukan (ずかん) ---------- */
+
+.hk-zukan {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 3vw, 16px);
+  min-height: 0;
+}
+
+.hk-zukan-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 2px;
+}
+
+.hk-zukan-back {
+  appearance: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--hk-sub);
+  padding: 8px 6px;
+}
+
+.hk-zukan-title {
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  color: var(--hk-sub);
+}
+
+.hk-zukan-stage {
+  flex: 0 0 auto;
+  min-height: 200px;
+  height: 32dvh;
+}
+
+.hk-zukan-caption {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hk-zukan-kanji {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.hk-zukan-reading {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--hk-sub);
+  margin-left: 10px;
+  letter-spacing: 0.14em;
+}
+
+.hk-zukan-image {
+  margin: 0;
+  font-size: 13px;
+  color: var(--hk-sub);
+  line-height: 1.7;
+}
+
+/* ---------- kasaneru (かさねる) ---------- */
+
+.hk-kasaneru-stage {
+  flex: 0 0 auto;
+  min-height: 200px;
+  height: 32dvh;
+}
+
+/* ---------- complete ---------- */
+
+.hk-complete {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  text-align: center;
+}
+
+.hk-complete-title {
+  font-size: clamp(20px, 6vw, 24px);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  margin: 0;
+}
+
+.hk-complete-sub {
+  font-size: 13px;
+  color: var(--hk-sub);
+  line-height: 1.8;
+  margin: -10px 0 0;
+}
+
+.hk-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  width: 100%;
+}
+
+.hk-cell {
+  appearance: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 4px 12px;
+  border-radius: 16px;
+  background: var(--hk-surface);
+  border: 1px solid var(--hk-border);
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.hk-cell:active {
+  transform: scale(0.96);
+}
+
+.hk-cell.is-selected {
+  border-color: var(--hk-accent);
+}
+
+.hk-cell-kanji {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.hk-cell-meta {
+  font-size: 10px;
+  color: var(--hk-sub);
+  letter-spacing: 0.08em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hk-slot.is-ghost .hk-bar {
+    animation-duration: 0.25s;
+  }
+}
