@@ -2,7 +2,7 @@
 
 ## Data Sources
 
-- `data/iching/hexagrams.ts` の `TRIGRAMS`・`hexagramFromLines()`・`HEXAGRAMS_BY_NUMBER`(八卦の漢字名・記号☰〜☷・自然属性・爻3本、および6爻→64卦の変換)。**読み取りのみ、変更禁止**
+- `domain/hexagrams.ts` の `TRIGRAMS`・`hexagramFromLines()`・`HEXAGRAMS_BY_NUMBER`(八卦の漢字名・記号☰〜☷・自然属性・爻3本、および6爻→64卦の変換)。**読み取りのみ、変更禁止**
 - `data/hakke/trigrams.ts` — 上記を拡張した学習用データ(このアプリの唯一のデータソース)
 
 ## Types And Shape

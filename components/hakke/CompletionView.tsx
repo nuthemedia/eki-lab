@@ -8,6 +8,7 @@ type Props = {
   /** いま完走したモード */
   mode: HakkeMode;
   onRestart: (mode: HakkeMode) => void;
+  onContinue: () => void;
   /** セルタップでその卦のずかんへ */
   onOpenZukan: (id: number) => void;
   onTop: () => void;
@@ -42,7 +43,13 @@ const COPY: Record<
   },
 };
 
-export default function CompletionView({ mode, onRestart, onOpenZukan, onTop }: Props) {
+export default function CompletionView({
+  mode,
+  onRestart,
+  onContinue,
+  onOpenZukan,
+  onTop,
+}: Props) {
   const copy = COPY[mode];
   return (
     <div className="hk-complete">
@@ -69,20 +76,37 @@ export default function CompletionView({ mode, onRestart, onOpenZukan, onTop }: 
         ))}
       </div>
       <div className="hk-intro-actions">
-        <button
-          type="button"
-          className="hk-cta"
-          onClick={() => onRestart(copy.primary.mode)}
-        >
-          {copy.primary.label}
-        </button>
-        <button
-          type="button"
-          className="hk-cta hk-cta--ghost"
-          onClick={() => onRestart(copy.ghost.mode)}
-        >
-          {copy.ghost.label}
-        </button>
+        {mode === "guided" ? (
+          <>
+            <button type="button" className="hk-cta" onClick={onContinue}>
+              つぎのステージ：となえる
+            </button>
+            <button
+              type="button"
+              className="hk-cta hk-cta--ghost"
+              onClick={() => onRestart("recall")}
+            >
+              おもいだしてつくる
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              className="hk-cta"
+              onClick={() => onRestart(copy.primary.mode)}
+            >
+              {copy.primary.label}
+            </button>
+            <button
+              type="button"
+              className="hk-cta hk-cta--ghost"
+              onClick={() => onRestart(copy.ghost.mode)}
+            >
+              {copy.ghost.label}
+            </button>
+          </>
+        )}
         <button type="button" className="hk-top-link" onClick={onTop}>
           ← トップへ
         </button>

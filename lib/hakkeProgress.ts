@@ -32,9 +32,29 @@ export type HakkeProgress = {
   sessionMode: HakkeMode | null;
   /** 中断中の周回で次にやる卦の index(=完了した卦の数、1〜7)。無ければ null */
   sessionStep: number | null;
+  /**
+   * 対応関係ごとの正誤(SRS のもと)。
+   * assoc[relationKey][trigramId] = 実績。relationKey は data/hakke/trigrams の pairKey で作る。
+   */
+  assoc: Record<string, Record<number, AssocStat>>;
+  /** 一度でもクリアした学習ステージの slug */
+  stagesCleared: string[];
 };
 
-const STORAGE_KEY = "hakke-progress-v1";
+/** 対応関係×卦の学習実績 */
+export type AssocStat = {
+  /** 出題された回数 */
+  seen: number;
+  /** 正解した回数 */
+  correct: number;
+  /** 間違えた回数 */
+  wrong: number;
+  lastSeenAt: string | null;
+};
+
+const STORAGE_KEY = "hakke-progress-v2";
+/** v1 → v2 移行元 */
+const LEGACY_KEY = "hakke-progress-v1";
 const TRIGRAM_COUNT = 8;
 
 const EMPTY: HakkeProgress = {
@@ -47,6 +67,15 @@ const EMPTY: HakkeProgress = {
   dailyPickDate: null,
   sessionMode: null,
   sessionStep: null,
+  assoc: {},
+  stagesCleared: [],
+};
+
+const EMPTY_ASSOC: AssocStat = {
+  seen: 0,
+  correct: 0,
+  wrong: 0,
+  lastSeenAt: null,
 };
 
 const EMPTY_STAT: TrigramStat = {
@@ -71,31 +100,75 @@ function normalizeStat(raw: unknown): TrigramStat {
   };
 }
 
+function normalizeAssocStat(raw: unknown): AssocStat {
+  const stat = (raw ?? {}) as Partial<AssocStat>;
+  return {
+    seen: typeof stat.seen === "number" ? stat.seen : 0,
+    correct: typeof stat.correct === "number" ? stat.correct : 0,
+    wrong: typeof stat.wrong === "number" ? stat.wrong : 0,
+    lastSeenAt: typeof stat.lastSeenAt === "string" ? stat.lastSeenAt : null,
+  };
+}
+
+/** v1 / v2 いずれの JSON も同じ形に正規化する(assoc は v1 には無いので空になる) */
+function parseProgress(raw: string): HakkeProgress {
+  const parsed = JSON.parse(raw) as Partial<HakkeProgress>;
+  const perTrigram: Record<number, TrigramStat> = {};
+  if (parsed.perTrigram && typeof parsed.perTrigram === "object") {
+    for (const [key, value] of Object.entries(parsed.perTrigram)) {
+      perTrigram[Number(key)] = normalizeStat(value);
+    }
+  }
+  const assoc: Record<string, Record<number, AssocStat>> = {};
+  if (parsed.assoc && typeof parsed.assoc === "object") {
+    for (const [rel, byId] of Object.entries(parsed.assoc)) {
+      if (!byId || typeof byId !== "object") continue;
+      assoc[rel] = {};
+      for (const [id, value] of Object.entries(byId as Record<string, unknown>)) {
+        assoc[rel][Number(id)] = normalizeAssocStat(value);
+      }
+    }
+  }
+  return {
+    guidedRounds: typeof parsed.guidedRounds === "number" ? parsed.guidedRounds : 0,
+    recallRounds: typeof parsed.recallRounds === "number" ? parsed.recallRounds : 0,
+    chooseRounds: typeof parsed.chooseRounds === "number" ? parsed.chooseRounds : 0,
+    perTrigram,
+    lastCompletedAt: typeof parsed.lastCompletedAt === "string" ? parsed.lastCompletedAt : null,
+    dailyPickId: typeof parsed.dailyPickId === "number" ? parsed.dailyPickId : null,
+    dailyPickDate: typeof parsed.dailyPickDate === "string" ? parsed.dailyPickDate : null,
+    sessionMode:
+      parsed.sessionMode === "guided" || parsed.sessionMode === "recall"
+        ? parsed.sessionMode
+        : null,
+    sessionStep: typeof parsed.sessionStep === "number" ? parsed.sessionStep : null,
+    assoc,
+    stagesCleared: Array.isArray(parsed.stagesCleared)
+      ? parsed.stagesCleared.filter((s): s is string => typeof s === "string")
+      : [],
+  };
+}
+
 function readStorage(): HakkeProgress {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return EMPTY;
-    const parsed = JSON.parse(raw) as Partial<HakkeProgress>;
-    const perTrigram: Record<number, TrigramStat> = {};
-    if (parsed.perTrigram && typeof parsed.perTrigram === "object") {
-      for (const [key, value] of Object.entries(parsed.perTrigram)) {
-        perTrigram[Number(key)] = normalizeStat(value);
+    if (raw) return parseProgress(raw);
+    // v2 が無ければ v1 から移行(周回数・卦ごと実績・きょうのひとつ・中断を引き継ぐ)
+    const legacy = window.localStorage.getItem(LEGACY_KEY);
+    if (legacy) {
+      const migrated = parseProgress(legacy);
+      // 旧 guided 完走者は「つくる」クリア済みとして 8ステージ地図に載せる
+      if (migrated.guidedRounds > 0 && !migrated.stagesCleared.includes("tsukuru")) {
+        migrated.stagesCleared = [...migrated.stagesCleared, "tsukuru"];
       }
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      } catch {
+        // 保存できなくても移行結果はメモリで使う
+      }
+      return migrated;
     }
-    return {
-      guidedRounds: typeof parsed.guidedRounds === "number" ? parsed.guidedRounds : 0,
-      recallRounds: typeof parsed.recallRounds === "number" ? parsed.recallRounds : 0,
-      chooseRounds: typeof parsed.chooseRounds === "number" ? parsed.chooseRounds : 0,
-      perTrigram,
-      lastCompletedAt: typeof parsed.lastCompletedAt === "string" ? parsed.lastCompletedAt : null,
-      dailyPickId: typeof parsed.dailyPickId === "number" ? parsed.dailyPickId : null,
-      dailyPickDate: typeof parsed.dailyPickDate === "string" ? parsed.dailyPickDate : null,
-      sessionMode:
-        parsed.sessionMode === "guided" || parsed.sessionMode === "recall"
-          ? parsed.sessionMode
-          : null,
-      sessionStep: typeof parsed.sessionStep === "number" ? parsed.sessionStep : null,
-    };
+    return EMPTY;
   } catch {
     return EMPTY;
   }
@@ -225,4 +298,75 @@ export function getDailyTrigramId(): number {
   const id = pickDailyTrigramId(current);
   commit({ ...current, dailyPickId: id, dailyPickDate: today });
   return id;
+}
+
+// ---------------------------------------------------------------------------
+// 対応関係(association)ごとの学習実績 — ステージ横断の復習のもと
+// ---------------------------------------------------------------------------
+
+/** 学習ステージを一度クリアしたと記録する */
+export function recordStageClear(slug: string): void {
+  const current = getProgressSnapshot();
+  if (current.stagesCleared.includes(slug)) return;
+  commit({ ...current, stagesCleared: [...current.stagesCleared, slug] });
+}
+
+/** 対応関係×卦の実績を取得(無ければ空) */
+export function getAssocStat(relationKey: string, id: number): AssocStat {
+  const current = getProgressSnapshot();
+  return current.assoc[relationKey]?.[id] ?? EMPTY_ASSOC;
+}
+
+/** 対応関係×卦の出題結果を記録する */
+export function recordAssoc(relationKey: string, id: number, correct: boolean): void {
+  const current = getProgressSnapshot();
+  const prev = current.assoc[relationKey]?.[id] ?? EMPTY_ASSOC;
+  commit({
+    ...current,
+    assoc: {
+      ...current.assoc,
+      [relationKey]: {
+        ...(current.assoc[relationKey] ?? {}),
+        [id]: {
+          seen: prev.seen + 1,
+          correct: prev.correct + (correct ? 1 : 0),
+          wrong: prev.wrong + (correct ? 0 : 1),
+          lastSeenAt: new Date().toISOString(),
+        },
+      },
+    },
+  });
+}
+
+/** 弱さスコア。大きいほど復習優先(未着手・誤り多・久しぶりを優先) */
+function assocWeakness(stat: AssocStat): number {
+  if (stat.seen === 0) return 100;
+  return stat.wrong * 3 - stat.correct + daysSince(stat.lastSeenAt) * 0.5;
+}
+
+/** ある対応関係の中で、弱い順に卦 id を返す(記録済みのみ) */
+export function getWeakByRelation(relationKey: string): number[] {
+  const current = getProgressSnapshot();
+  const byId = current.assoc[relationKey] ?? {};
+  return Object.keys(byId)
+    .map(Number)
+    .sort((a, b) => assocWeakness(byId[b]) - assocWeakness(byId[a]));
+}
+
+export type ReviewItem = { relationKey: string; id: number; weakness: number };
+
+/**
+ * 復習キュー。記録済みの全 association を横断し、弱い順に返す。
+ * 苦手な対応(卦形↔口訣、卦形↔家族 など)を relation をまたいで再出題するのに使う。
+ */
+export function getReviewQueue(limit = 12): ReviewItem[] {
+  const current = getProgressSnapshot();
+  const items: ReviewItem[] = [];
+  for (const [relationKey, byId] of Object.entries(current.assoc)) {
+    for (const [id, stat] of Object.entries(byId)) {
+      items.push({ relationKey, id: Number(id), weakness: assocWeakness(stat) });
+    }
+  }
+  items.sort((a, b) => b.weakness - a.weakness);
+  return items.slice(0, limit);
 }

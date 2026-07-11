@@ -10,10 +10,12 @@ import {
   getServerProgressSnapshot,
   recordRoundComplete,
   recordSession,
+  recordStageClear,
   recordTrigramRecall,
   subscribeProgress,
   type HakkeMode,
 } from "@/lib/hakkeProgress";
+import { stageViews, type StageSlug } from "@/data/hakke/stages";
 import { playChime, playDissolve, playNature, playTap, unlock } from "@/lib/hakkeSound";
 import TrigramFigure, { type LineValue } from "./TrigramFigure";
 import ProgressDots from "./ProgressDots";
@@ -25,6 +27,15 @@ import ZukanView from "./ZukanView";
 import DailyOne from "./DailyOne";
 import KasaneruFlow from "./KasaneruFlow";
 import HakkeEyecatch from "./HakkeEyecatch";
+import AboutHakkeDialog from "./AboutHakkeDialog";
+import ChantStage from "./ChantStage";
+import YomuStage from "./YomuStage";
+import KatachiStage from "./KatachiStage";
+import ShizenStage from "./ShizenStage";
+import HatarakiStage from "./HatarakiStage";
+import KazokuStage from "./KazokuStage";
+import HougakuStage from "./HougakuStage";
+import ReviewFlow from "./ReviewFlow";
 import NatureStage from "./stage/NatureStage";
 
 type Phase =
@@ -35,44 +46,27 @@ type Phase =
   | "complete"
   | "zukan"
   | "daily"
-  | "kasaneru";
+  | "kasaneru"
+  | "stage"
+  | "review";
 
 const HINTS = ["いちばん下から", "つぎは、まんなか", "さいごに、いちばん上"];
 /** 同じ爻で溶けた回数がここに達したら、そっとお手本が浮かぶ */
 const SOFT_HINT_AFTER = 3;
 
-/** 学習段階ラダーの1段の状態 */
-type StageStatus = "done" | "current" | "locked";
-
-function LadderMark({ status }: { status: StageStatus }) {
-  if (status === "done") {
-    return (
-      <svg className="hk-ladder-mark" viewBox="0 0 16 16" width="14" height="14" aria-hidden>
-        <path
-          d="M3.5 8.5l3 3 6-6.5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  }
-  if (status === "locked") {
-    return (
-      <svg className="hk-ladder-mark" viewBox="0 0 16 16" width="12" height="12" aria-hidden>
-        <rect x="3.5" y="7" width="9" height="6.5" rx="1.4" fill="currentColor" />
-        <path
-          d="M5.5 7V5.2a2.5 2.5 0 0 1 5 0V7"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.4"
-        />
-      </svg>
-    );
-  }
-  return null;
+function LadderCheck() {
+  return (
+    <svg className="hk-ladder-mark" viewBox="0 0 16 16" width="14" height="14" aria-hidden>
+      <path
+        d="M3.5 8.5l3 3 6-6.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 export default function HakkeApp() {
@@ -90,7 +84,9 @@ export default function HakkeApp() {
   const [playKey, setPlayKey] = useState(0);
   const [zukanId, setZukanId] = useState<number | null>(null);
   const [dailyId, setDailyId] = useState<number | null>(null);
+  const [activeStage, setActiveStage] = useState<StageSlug | null>(null);
   const [softHint, setSoftHint] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const missCountRef = useRef(0);
   const hintedRef = useRef(false);
   const timersRef = useRef<number[]>([]);
@@ -132,6 +128,22 @@ export default function HakkeApp() {
     setPhase("build");
   };
 
+  const backToIntro = () => {
+    setActiveStage(null);
+    setPhase("intro");
+  };
+
+  /** 8ステージ地図からステージを開く */
+  const openStage = (slug: StageSlug) => {
+    unlock();
+    if (slug === "tsukuru") {
+      start("guided");
+      return;
+    }
+    setActiveStage(slug);
+    setPhase("stage");
+  };
+
   const handlePick = (value: LineValue) => {
     if (phase !== "build" || ghost || placed.length >= 3) return;
     unlock();
@@ -170,6 +182,8 @@ export default function HakkeApp() {
   const handleNext = () => {
     if (step === LEARNING_TRIGRAMS.length - 1) {
       recordRoundComplete(mode);
+      // つくる(guided)を1周したらステージクリア扱い
+      if (mode === "guided") recordStageClear("tsukuru");
       clearSession();
       setPhase("complete");
       return;
@@ -194,56 +208,53 @@ export default function HakkeApp() {
     setPhase("daily");
   };
 
+  const openReview = () => {
+    unlock();
+    setPhase("review");
+  };
+
   const openKasaneru = () => {
     unlock();
     setPhase("kasaneru");
   };
 
   if (phase === "intro") {
-    const hasGuided = progress.guidedRounds > 0;
-    const hasRecall = progress.recallRounds > 0;
-    const hasChoose = progress.chooseRounds > 0;
+    const { views, current } = stageViews(progress);
+    const hasTsukuru = progress.stagesCleared.includes("tsukuru") || progress.guidedRounds > 0;
+    const hasReview = Object.keys(progress.assoc).length > 0;
 
-    // 学習済み(おもいだす/えらぶで触れた卦)
+    // 学習済み(旧 recall/choose の実績、または よむ で正解した卦)
     const learnedIds = new Set<number>();
     for (let id = 0; id < HAKKE_TRIGRAMS.length; id++) {
-      const stat = progress.perTrigram[id];
-      if (stat && (stat.recallBuilt > 0 || stat.chosen > 0)) learnedIds.add(id);
+      const legacy = progress.perTrigram[id];
+      const legacyLearned = !!legacy && (legacy.recallBuilt > 0 || legacy.chosen > 0);
+      const assocLearned = Object.values(progress.assoc).some(
+        (byId) => (byId[id]?.correct ?? 0) > 0,
+      );
+      if (legacyLearned || assocLearned) learnedIds.add(id);
     }
     const learnedCount = learnedIds.size;
 
-    // 中断中の周回(guided/recall)。1卦でも終えていれば「続きから」。
+    // 中断中の周回(つくる)。1卦でも終えていれば「続きから」。
     const hasSession =
       progress.sessionMode !== null &&
       progress.sessionStep !== null &&
       progress.sessionStep >= 1;
+    const showResume = hasSession && current?.slug === "tsukuru";
 
-    // メインボタンの起点(未完了の段階を上から)
-    const currentMode: HakkeMode = !hasGuided
-      ? "guided"
-      : !hasRecall
-        ? "recall"
-        : !hasChoose
-          ? "choose"
-          : "recall";
-
-    const primaryLabel = hasSession ? `続きから  ${progress.sessionStep}/8` : "はじめる";
-    const onPrimary = hasSession ? resume : () => start(currentMode);
-
-    // 学習段階ラダー(番号付き縦ステップ)
-    const stages: { label: string; desc: string; status: StageStatus }[] = [
-      { label: "つくる", desc: "お手本を見て", status: hasGuided ? "done" : "current" },
-      {
-        label: "おもいだす",
-        desc: "漢字を手がかりに",
-        status: hasRecall ? "done" : hasGuided ? "current" : "locked",
-      },
-      {
-        label: "えらぶ",
-        desc: "自然から選ぶ",
-        status: hasChoose ? "done" : hasRecall ? "current" : "locked",
-      },
-    ];
+    // CTA は「次にやること」があるときだけ出す。稼働分を全クリアすると current=null で消える。
+    const primaryLabel = showResume
+      ? `続きから  ${progress.sessionStep}/8`
+      : current
+        ? progress.stagesCleared.length === 0
+          ? "はじめる"
+          : `つづける：${current.title}`
+        : null;
+    const onPrimary = showResume
+      ? resume
+      : () => {
+          if (current) openStage(current.slug);
+        };
 
     // 八卦の進捗で「現在学習中」にする卦
     let currentTrigramId: number | null = null;
@@ -255,6 +266,16 @@ export default function HakkeApp() {
 
     return (
       <main className="hk-home">
+        <button
+          type="button"
+          className="hk-about-trigger"
+          aria-label="Hakkeについて"
+          onClick={() => setAboutOpen(true)}
+        >
+          ?
+        </button>
+        <AboutHakkeDialog open={aboutOpen} onClose={() => setAboutOpen(false)} />
+
         <header className="hk-hero">
           <h1 className="hk-hero-title">HAKKE</h1>
           <p className="hk-hero-sub">八卦を、手でおぼえる。</p>
@@ -262,30 +283,51 @@ export default function HakkeApp() {
 
         <HakkeEyecatch />
 
-        <button type="button" className="hk-cta hk-home-cta" onClick={onPrimary}>
-          {primaryLabel}
-        </button>
+        {primaryLabel ? (
+          <button type="button" className="hk-cta hk-home-cta" onClick={onPrimary}>
+            {primaryLabel}
+          </button>
+        ) : null}
 
-        <ol className="hk-ladder" aria-label="学習の段階">
-          {stages.map((stage, i) => (
-            <li key={stage.label} className={`hk-ladder-item is-${stage.status}`}>
-              <span className="hk-ladder-num" aria-hidden>
-                {i + 1}
-              </span>
-              <span className="hk-ladder-body">
-                <span className="hk-ladder-label">{stage.label}</span>
-                <span className="hk-ladder-desc">{stage.desc}</span>
-              </span>
-              {stage.status === "current" ? (
-                <span className="hk-ladder-now">今</span>
-              ) : (
-                <LadderMark status={stage.status} />
-              )}
-            </li>
-          ))}
+        <ol className="hk-ladder" aria-label="学習ステージ">
+          {views.map((v) => {
+            const openable = v.status !== "soon";
+            const isResumeRow = v.slug === "tsukuru" && showResume;
+            return (
+              <li key={v.slug}>
+                <button
+                  type="button"
+                  className={`hk-ladder-item is-${v.status}`}
+                  disabled={!openable}
+                  onClick={
+                    isResumeRow ? resume : openable ? () => openStage(v.slug) : undefined
+                  }
+                >
+                  <span className="hk-ladder-num" aria-hidden>
+                    {v.num}
+                  </span>
+                  <span className="hk-ladder-body">
+                    <span className="hk-ladder-label">{v.title}</span>
+                    {isResumeRow ? (
+                      <span className="hk-ladder-desc">続きから {progress.sessionStep}/8</span>
+                    ) : v.subtitle ? (
+                      <span className="hk-ladder-desc">{v.subtitle}</span>
+                    ) : null}
+                  </span>
+                  {v.status === "done" ? (
+                    <LadderCheck />
+                  ) : v.status === "soon" ? (
+                    <span className="hk-ladder-soon">近日</span>
+                  ) : null}
+                </button>
+              </li>
+            );
+          })}
         </ol>
 
-        <ul className="hk-tprog" aria-label="八卦の進捗">
+        <div className="hk-tprog-wrap">
+          <p className="hk-tprog-label">八卦とのつながり</p>
+          <ul className="hk-tprog" aria-label="八卦とのつながり">
           {HAKKE_TRIGRAMS.map((t) => {
             const isCurrent = t.id === currentTrigramId;
             const learned = learnedIds.has(t.id);
@@ -293,8 +335,8 @@ export default function HakkeApp() {
             const stateLabel = isCurrent
               ? "学習中"
               : learned
-                ? "学習済み"
-                : "未学習";
+                ? "つながり学習済み"
+                : "これから";
             return (
               <li
                 key={t.id}
@@ -305,35 +347,131 @@ export default function HakkeApp() {
               </li>
             );
           })}
-        </ul>
+          </ul>
+        </div>
 
         <div className="hk-home-foot">
-          {hasGuided ? (
-            <button type="button" className="hk-daily-link" onClick={openDaily}>
-              きょうのひとつ
-            </button>
-          ) : null}
-          <nav className="hk-support" aria-label="そのほか">
+          <div className="hk-home-actions">
+            {hasTsukuru ? (
+              <button type="button" className="hk-daily-link" onClick={openDaily}>
+                きょうのひとつ
+              </button>
+            ) : null}
+            {hasReview ? (
+              <button type="button" className="hk-daily-link" onClick={openReview}>
+                ふくしゅう
+              </button>
+            ) : null}
+          </div>
+          <section className="hk-support-section" aria-labelledby="hk-support-title">
+            <h2 id="hk-support-title">もっと知る</h2>
+            <nav className="hk-support" aria-label="もっと知る">
             <button
               type="button"
-              className={`hk-support-link${hasGuided ? "" : " is-locked"}`}
-              onClick={hasGuided ? () => openZukan(null) : undefined}
-              disabled={!hasGuided}
+              className="hk-support-link"
+              onClick={() => openZukan(null)}
             >
               ずかん
             </button>
             <button
               type="button"
-              className={`hk-support-link${hasRecall ? "" : " is-locked"}`}
-              onClick={hasRecall ? openKasaneru : undefined}
-              disabled={!hasRecall}
+              className="hk-support-link"
+              onClick={openKasaneru}
             >
               かさねる
             </button>
-          </nav>
+            </nav>
+          </section>
+          <p className="hk-rights">© 2026 HAKKE</p>
         </div>
       </main>
     );
+  }
+
+  if (phase === "stage") {
+    if (activeStage === "tonaeru") {
+      return (
+        <ChantStage
+          onComplete={() => {
+            recordStageClear("tonaeru");
+            backToIntro();
+          }}
+          onExit={backToIntro}
+        />
+      );
+    }
+    if (activeStage === "yomu") {
+      return (
+        <YomuStage
+          onComplete={() => {
+            recordStageClear("yomu");
+            backToIntro();
+          }}
+          onExit={backToIntro}
+        />
+      );
+    }
+    if (activeStage === "katachi") {
+      return (
+        <KatachiStage
+          onComplete={() => {
+            recordStageClear("katachi");
+            backToIntro();
+          }}
+          onExit={backToIntro}
+        />
+      );
+    }
+    if (activeStage === "shizen") {
+      return (
+        <ShizenStage
+          onComplete={() => {
+            recordStageClear("shizen");
+            backToIntro();
+          }}
+          onExit={backToIntro}
+        />
+      );
+    }
+    if (activeStage === "hataraki") {
+      return (
+        <HatarakiStage
+          onComplete={() => {
+            recordStageClear("hataraki");
+            backToIntro();
+          }}
+          onExit={backToIntro}
+        />
+      );
+    }
+    if (activeStage === "kazoku") {
+      return (
+        <KazokuStage
+          onComplete={() => {
+            recordStageClear("kazoku");
+            backToIntro();
+          }}
+          onExit={backToIntro}
+        />
+      );
+    }
+    if (activeStage === "hougaku") {
+      return (
+        <HougakuStage
+          onComplete={() => {
+            recordStageClear("hougaku");
+            backToIntro();
+          }}
+          onExit={backToIntro}
+        />
+      );
+    }
+    // 未対応 slug(通常は到達しない)
+    return null;
+  }
+
+  if (phase === "review") {
+    return <ReviewFlow onDone={backToIntro} onExit={backToIntro} />;
   }
 
   if (phase === "zukan") {
@@ -366,6 +504,7 @@ export default function HakkeApp() {
         <CompletionView
           mode={mode}
           onRestart={start}
+          onContinue={() => openStage("tonaeru")}
           onOpenZukan={openZukan}
           onTop={() => setPhase("intro")}
         />
