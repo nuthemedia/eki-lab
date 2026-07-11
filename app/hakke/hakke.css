@@ -4,9 +4,9 @@
   --hk-bg: #f5f5f0;
   --hk-surface: #ffffff;
   --hk-ink: #2b2e38;
-  --hk-sub: #767b89;
+  --hk-sub: #626775;
   --hk-line: #33374a;
-  --hk-border: #e5e5dc;
+  --hk-border: #d8d8ce;
   --hk-accent: #5560d8;
   --hk-accent-soft: #eceefc;
 
@@ -55,6 +55,12 @@
   color: var(--hk-accent);
 }
 
+.hk-root button:focus-visible,
+.hk-root a:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--hk-accent) 72%, white);
+  outline-offset: 3px;
+}
+
 /* ---------- home (intro) ---------- */
 
 .hk-home {
@@ -65,6 +71,110 @@
   gap: clamp(18px, 5vw, 26px);
   padding-top: clamp(20px, 8vw, 40px);
   text-align: center;
+}
+
+/* ---------- about Hakke ---------- */
+
+.hk-about-trigger {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  left: clamp(12px, 5vw, 20px);
+  z-index: 5;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--hk-border);
+  border-radius: 50%;
+  background: var(--hk-surface);
+  color: var(--hk-ink);
+  font: inherit;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hk-about-dialog {
+  width: min(100%, 480px);
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  background: var(--hk-bg);
+  color: var(--hk-ink);
+}
+
+.hk-about-dialog::backdrop {
+  background: rgb(27 29 37 / 42%);
+}
+
+.hk-about-panel {
+  box-sizing: border-box;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: max(16px, env(safe-area-inset-top)) clamp(20px, 6vw, 30px)
+    max(20px, env(safe-area-inset-bottom));
+}
+
+.hk-about-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.hk-about-bar h2 {
+  margin: 0;
+  font-size: clamp(24px, 7vw, 30px);
+  letter-spacing: 0.06em;
+}
+
+.hk-about-close {
+  min-width: 56px;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: var(--hk-sub);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.hk-about-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: clamp(32px, 9vh, 64px) 0 28px;
+  text-align: left;
+}
+
+.hk-about-lead {
+  margin: 0 0 38px;
+  font-size: clamp(17px, 4.8vw, 20px);
+  font-weight: 600;
+  line-height: 1.9;
+}
+
+.hk-about-content section + section {
+  margin-top: 34px;
+}
+
+.hk-about-content h3 {
+  margin: 0 0 10px;
+  font-size: 19px;
+  letter-spacing: 0.05em;
+}
+
+.hk-about-content section p {
+  margin: 0;
+  color: var(--hk-sub);
+  font-size: 15px;
+  line-height: 2;
+}
+
+.hk-about-done {
+  flex: 0 0 auto;
+  align-self: center;
 }
 
 .hk-hero {
@@ -151,6 +261,9 @@
 
 .hk-home-cta {
   min-width: 220px;
+  max-width: 100%;
+  padding: 0 28px;
+  letter-spacing: 0.06em;
 }
 
 /* ---------- learning-stage ladder (numbered vertical stepper) ---------- */
@@ -167,13 +280,28 @@
 }
 
 .hk-ladder-item {
+  appearance: none;
+  width: 100%;
+  font-family: inherit;
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 12px;
+  min-height: 56px;
   padding: 10px 14px;
   border-radius: 14px;
-  border: 1px solid transparent;
+  border: 1px solid var(--hk-border);
+  background: var(--hk-surface);
   color: var(--hk-sub);
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.hk-ladder-item:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.hk-ladder-item:disabled {
+  cursor: default;
 }
 
 .hk-ladder-num {
@@ -257,9 +385,24 @@
   color: var(--hk-accent);
 }
 
-/* locked: 未解放。淡く */
-.hk-ladder-item.is-locked {
-  opacity: 0.5;
+/* open: 解放済み(現在ではない)。墨文字で押せる */
+.hk-ladder-item.is-open {
+  color: var(--hk-ink);
+}
+
+/* locked / soon: まだ開けない。淡く、面もフラットに */
+.hk-ladder-item.is-locked,
+.hk-ladder-item.is-soon {
+  background: transparent;
+  border-style: dashed;
+  opacity: 0.72;
+}
+
+.hk-ladder-soon {
+  flex: 0 0 auto;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--hk-sub);
 }
 
 /* ---------- eight-trigram progress ---------- */
@@ -276,13 +419,27 @@
   font-size: clamp(22px, 7vw, 28px);
 }
 
+.hk-tprog-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.hk-tprog-label {
+  margin: 0;
+  color: var(--hk-sub);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
 .hk-tprog-item {
   line-height: 1;
   color: var(--hk-line);
 }
 
 .hk-tprog-item.is-todo {
-  opacity: 0.28;
+  opacity: 0.45;
 }
 
 .hk-tprog-item.is-learned {
@@ -297,6 +454,7 @@
 /* ---------- home footer (daily + support) ---------- */
 
 .hk-home-foot {
+  width: 100%;
   margin-top: auto;
   padding-top: 12px;
   display: flex;
@@ -323,25 +481,53 @@
   transform: scale(0.97);
 }
 
+.hk-support-section {
+  width: 100%;
+  max-width: 340px;
+  padding-top: 20px;
+  border-top: 1px solid var(--hk-border);
+}
+
+.hk-support-section h2 {
+  margin: 0 0 12px;
+  color: var(--hk-sub);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+}
+
 .hk-support {
   display: flex;
-  gap: 20px;
+  gap: 10px;
 }
 
 .hk-support-link {
   appearance: none;
-  border: none;
-  background: none;
+  flex: 1;
+  min-width: 0;
+  min-height: 60px;
+  border: 1px solid var(--hk-border);
+  border-radius: 16px;
+  background: var(--hk-surface);
   cursor: pointer;
-  color: var(--hk-sub);
-  font-size: 13px;
+  color: var(--hk-ink);
+  font-size: 15px;
+  font-weight: 600;
   letter-spacing: 0.08em;
-  padding: 6px 4px;
+  padding: 8px 12px;
+  transition: transform 0.12s ease, border-color 0.12s ease;
 }
 
-.hk-support-link.is-locked {
-  opacity: 0.4;
-  cursor: default;
+.hk-support-link:active {
+  transform: scale(0.97);
+  border-color: var(--hk-accent);
+}
+
+.hk-rights {
+  margin: 4px 0 0;
+  color: var(--hk-sub);
+  font-size: 10px;
+  letter-spacing: 0.12em;
 }
 
 /* ---------- shared buttons ---------- */
@@ -364,6 +550,11 @@
 .hk-cta:active {
   transform: scale(0.97);
   opacity: 0.9;
+}
+
+.hk-cta:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .hk-intro-actions {
@@ -503,6 +694,11 @@
   justify-content: center;
 }
 
+.hk-stage:has(.hk-card) {
+  flex: 0 0 auto;
+  min-height: 420px;
+}
+
 .hk-stage-canvas {
   position: absolute;
   inset: 0;
@@ -616,6 +812,11 @@
   width: 43%;
 }
 
+/* 家族段:一本だけ異なる爻を強調 */
+.hk-slot.is-highlight .hk-bar {
+  background: var(--hk-accent);
+}
+
 .hk-slot.is-ghost .hk-bar {
   animation: hk-ghost 0.55s ease forwards;
 }
@@ -650,6 +851,7 @@
   text-align: center;
   background: color-mix(in srgb, var(--hk-surface) 88%, transparent);
   backdrop-filter: blur(6px);
+  overflow-y: auto;
 }
 
 .hk-card-kanji {
@@ -734,6 +936,603 @@
 .hk-choice:disabled:not(.is-faded) {
   opacity: 0.55;
   pointer-events: none;
+}
+
+/* ---------- pick exercise (generic) ---------- */
+
+/* 手がかり(形/テキスト)とリビールを縦に積む */
+.hk-pick-stage {
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hk-choices {
+  flex-wrap: wrap;
+}
+
+.hk-prompt-text {
+  font-size: clamp(42px, 15vw, 64px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.hk-choice.is-figure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+}
+
+.hk-choices.is-eight {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.hk-choices.is-eight .hk-choice {
+  min-height: 56px;
+  font-size: 20px;
+}
+
+/* ---------- fill-blank(口訣の穴埋め)---------- */
+
+.hk-fill-prompt {
+  margin: 14px 0 0;
+  font-size: clamp(28px, 9vw, 38px);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.hk-fill-blank {
+  color: var(--hk-accent);
+  border-bottom: 2px solid var(--hk-accent);
+  padding: 0 6px;
+  margin-left: 2px;
+}
+
+.hk-fill-reveal {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.hk-fill-full {
+  font-size: clamp(24px, 8vw, 32px);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.hk-fill-modern {
+  font-size: 13px;
+  color: var(--hk-sub);
+  letter-spacing: 0.04em;
+}
+
+.hk-fill-reveal .hk-cta {
+  margin-top: 12px;
+}
+
+/* ---------- かたちを言う:理解カード(うた / ペア)---------- */
+
+.hk-stage-eyebrow {
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: var(--hk-sub);
+  margin: 2px 0 0;
+}
+
+.hk-stage-note {
+  max-width: 340px;
+  margin: 0 auto;
+  color: var(--hk-sub);
+  font-size: 12px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.hk-yomu-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 320px;
+}
+
+.hk-yomu-intro .hk-teach-note {
+  line-height: 1.8;
+}
+
+/* 直接置いた CTA は中央寄せ(hk-build は stretch のため) */
+.hk-build > .hk-cta {
+  align-self: center;
+}
+
+.hk-teach {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.hk-teach-mnemonic {
+  margin: 10px 0 0;
+  font-size: clamp(30px, 10vw, 44px);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.hk-teach-reading {
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  color: var(--hk-sub);
+}
+
+.hk-teach-meaning {
+  margin: 8px 0 0;
+  font-size: clamp(16px, 4.6vw, 19px);
+  color: var(--hk-ink);
+}
+
+.hk-pair-label {
+  text-align: center;
+  font-size: clamp(15px, 4.6vw, 18px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--hk-accent);
+  margin: 8px 0 0;
+}
+
+.hk-pair {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 8vw, 40px);
+}
+
+.hk-pair-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.hk-pair-kanji {
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.hk-pair-feature {
+  font-size: 13px;
+  color: var(--hk-sub);
+  letter-spacing: 0.02em;
+}
+
+/* ---------- 汎用 導入カード(TeachWalk のスライド)---------- */
+
+.hk-teach-title {
+  margin: 0;
+  font-size: clamp(16px, 4.8vw, 19px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.hk-teach-note {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--hk-sub);
+  letter-spacing: 0.04em;
+}
+
+.hk-teach-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px 10px;
+  width: 100%;
+  max-width: 340px;
+}
+
+.hk-teach-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.hk-teach-item-main {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.hk-teach-item-sub {
+  font-size: 11px;
+  color: var(--hk-sub);
+}
+
+/* 自然のリズム:再生中に点灯する自然セル */
+.hk-teach-item {
+  border-radius: 12px;
+  padding: 6px 2px;
+  transition: background 0.15s ease;
+}
+
+.hk-teach-item.is-active {
+  background: var(--hk-accent-soft);
+}
+
+.hk-teach-item.is-active .hk-teach-item-main {
+  color: var(--hk-accent);
+}
+
+.hk-rhythm-play {
+  margin-top: 6px;
+}
+
+.hk-teach-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hk-teach-list-row {
+  display: grid;
+  grid-template-columns: 48px 2.4em 1fr;
+  align-items: center;
+  gap: 12px;
+}
+
+.hk-teach-list-kanji {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.hk-teach-list-verb {
+  font-size: 15px;
+  color: var(--hk-ink);
+}
+
+.hk-teach-list-action {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+}
+
+.hk-teach-list-description {
+  color: var(--hk-sub);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.hk-pair-description {
+  max-width: 130px;
+  color: var(--hk-sub);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* ---------- 方角(PlaceBoard)---------- */
+
+.hk-board-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.hk-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 1;
+}
+
+.hk-board-cell {
+  appearance: none;
+  cursor: pointer;
+  border-radius: 14px;
+  border: 1px solid var(--hk-border);
+  background: var(--hk-surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--hk-ink);
+  min-height: 0;
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+.hk-board-dir {
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: var(--hk-sub);
+}
+
+.hk-board-cell.is-filled {
+  border-color: var(--hk-accent);
+  background: var(--hk-accent-soft);
+  cursor: default;
+}
+
+.hk-board-cell.is-wrong {
+  animation: hk-seq-shake 0.3s ease;
+}
+
+.hk-board-cell.is-ref {
+  cursor: default;
+}
+
+.hk-board-reflabel {
+  font-size: 10px;
+  color: var(--hk-sub);
+}
+
+.hk-board--ref {
+  pointer-events: none;
+}
+
+.hk-board-tray {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+}
+
+.hk-tray-item {
+  appearance: none;
+  cursor: pointer;
+  border-radius: 12px;
+  border: 1px solid var(--hk-border);
+  background: var(--hk-surface);
+  padding: 8px 12px;
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+.hk-tray-item:active {
+  transform: scale(0.95);
+}
+
+.hk-tray-item.is-selected {
+  border-color: var(--hk-accent);
+  background: var(--hk-accent-soft);
+}
+
+/* ---------- ふくしゅう ---------- */
+
+.hk-home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.hk-review-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+}
+
+/* ---------- となえる(chant)---------- */
+
+.hk-chant-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 6px 0 4px;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--hk-sub);
+}
+
+.hk-chant-steps .is-on {
+  color: var(--hk-accent);
+  font-weight: 600;
+}
+
+.hk-chant-steps-arrow {
+  opacity: 0.4;
+}
+
+.hk-chant-lead {
+  text-align: center;
+  margin: 8px 0 4px;
+}
+
+.hk-chant-lead-title {
+  margin: 0;
+  font-size: clamp(17px, 5vw, 20px);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.hk-chant-lead-line {
+  margin: 6px 0 0;
+  font-size: clamp(13px, 3.8vw, 15px);
+  letter-spacing: 0.08em;
+  color: var(--hk-sub);
+}
+
+.hk-chant-lead-note {
+  max-width: 340px;
+  margin: 7px auto 0;
+  color: var(--hk-sub);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.hk-chant-readout {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+  min-height: 2em;
+  margin: 10px 0;
+}
+
+.hk-chant-symbol {
+  font-size: 26px;
+  color: var(--hk-line);
+}
+
+.hk-chant-kanji {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.hk-chant-reading {
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  color: var(--hk-sub);
+}
+
+.hk-chant-grid,
+.hk-seq-grid {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  width: 100%;
+  max-width: 360px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.hk-chant-cell {
+  appearance: none;
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 6px;
+  border-radius: 14px;
+  border: 1px solid var(--hk-border);
+  background: var(--hk-surface);
+  color: var(--hk-ink);
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+.hk-chant-cell:active {
+  transform: scale(0.96);
+}
+
+.hk-chant-cell-kanji {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.hk-chant-cell-reading {
+  font-size: 11px;
+  color: var(--hk-sub);
+}
+
+.hk-chant-cell.is-seen {
+  border-color: var(--hk-sub);
+}
+
+.hk-chant-cell.is-active {
+  border-color: var(--hk-accent);
+  background: var(--hk-accent-soft);
+}
+
+.hk-chant-cell.is-active .hk-chant-cell-kanji {
+  color: var(--hk-accent);
+}
+
+.hk-chant-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.hk-chant-controls .hk-cta {
+  padding: 0 24px;
+}
+
+/* ---------- sequence tap(順番にタップ)---------- */
+
+.hk-seq {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.hk-seq-cell {
+  position: relative;
+  appearance: none;
+  cursor: pointer;
+  width: 100%;
+  min-height: 60px;
+  border-radius: 14px;
+  border: 1px solid var(--hk-border);
+  background: var(--hk-surface);
+  color: var(--hk-ink);
+  font-size: 22px;
+  font-weight: 600;
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease,
+    opacity 0.3s ease;
+}
+
+.hk-seq-cell.is-placed {
+  border-color: var(--hk-accent);
+  background: var(--hk-accent-soft);
+  color: var(--hk-accent);
+}
+
+.hk-seq-cell.is-wrong {
+  animation: hk-seq-shake 0.3s ease;
+}
+
+.hk-seq-num {
+  position: absolute;
+  top: 4px;
+  right: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--hk-accent);
+}
+
+@keyframes hk-seq-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-3px);
+  }
+  75% {
+    transform: translateX(3px);
+  }
 }
 
 /* ---------- zukan (ずかん) ---------- */

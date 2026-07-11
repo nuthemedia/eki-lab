@@ -19,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body>
-        <main>{children}</main>
+        {children}
         <Analytics mode="production" />
       </body>
     </html>

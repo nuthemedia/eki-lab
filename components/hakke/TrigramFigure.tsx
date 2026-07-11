@@ -12,7 +12,7 @@ const SIZES = {
 
 type Props = {
   /** 下から上(index 0 = 下爻) */
-  lines: LineValue[];
+  lines: readonly LineValue[];
   size?: keyof typeof SIZES;
   /** 3スロット分の枠を出す(組み立て中) */
   showEmpty?: boolean;
@@ -20,6 +20,8 @@ type Props = {
   ghost?: LineValue | null;
   /** 爻を下からスライドインさせる */
   animate?: boolean;
+  /** 強調する爻の index(0=下 / 1=中 / 2=上)。家族段で「一本だけ異なる爻」を示す */
+  highlight?: number | null;
 };
 
 function Bars({ value }: { value: LineValue }) {
@@ -40,6 +42,7 @@ export default function TrigramFigure({
   showEmpty = false,
   ghost = null,
   animate = false,
+  highlight = null,
 }: Props) {
   const reduced = useReducedMotion();
   const s = SIZES[size];
@@ -59,13 +62,14 @@ export default function TrigramFigure({
     >
       {Array.from({ length: slotCount }, (_, i) => {
         const value = lines[i];
+        const hi = highlight === i ? " is-highlight" : "";
         if (value) {
           const content = <Bars value={value} />;
           if (animate && !reduced) {
             return (
               <motion.div
                 key={`${i}-${value}`}
-                className="hk-slot"
+                className={`hk-slot${hi}`}
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.32, ease: "easeOut" }}
@@ -75,7 +79,7 @@ export default function TrigramFigure({
             );
           }
           return (
-            <div key={`${i}-${value}`} className="hk-slot">
+            <div key={`${i}-${value}`} className={`hk-slot${hi}`}>
               {content}
             </div>
           );

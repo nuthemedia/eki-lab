@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { hexagramFromLines } from "@/data/iching/hexagrams";
+import { hexagramFromLines } from "@/domain/iching/hexagrams";
 import { HAKKE_TRIGRAMS } from "@/data/hakke/trigrams";
 import { playChime, playTap } from "@/lib/hakkeSound";
 import TrigramFigure from "./TrigramFigure";
