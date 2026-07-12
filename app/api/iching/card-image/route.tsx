@@ -159,7 +159,7 @@ export async function GET(request: NextRequest) {
           }}
         >
           <div style={{ display: "flex" }}>{CARD_TAGLINE}</div>
-          <div style={{ display: "flex" }}>eki-lab.vercel.app/card</div>
+          <div style={{ display: "flex" }}>awaicommons.com/card</div>
         </div>
       </div>
     ),
