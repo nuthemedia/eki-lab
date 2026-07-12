@@ -57,6 +57,9 @@ export default function CompletionView({
   const copy = COPY[mode];
   return (
     <div className="hk-complete">
+      <div className="hk-celebration" aria-hidden>
+        <i /><i /><i />
+      </div>
       <h2 className="hk-complete-title">{copy.title}</h2>
       <p className="hk-complete-sub">
         {copy.sub[0]}

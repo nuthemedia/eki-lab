@@ -13,6 +13,7 @@ import TrigramFigure from "./TrigramFigure";
 import ProgressDots from "./ProgressDots";
 import PickExercise from "./exercise/PickExercise";
 import FillBlank from "./exercise/FillBlank";
+import StageMotif from "./StageMotif";
 
 const ALL_IDS = HAKKE_TRIGRAMS.map((t) => t.id);
 
@@ -48,6 +49,7 @@ function MnemonicCard({
       <p className="hk-stage-eyebrow">うた ・ 八卦取象歌</p>
       <ProgressDots total={total} current={index} />
       <div className="hk-teach">
+        {index === 0 ? <StageMotif kind="katachi" /> : null}
         <TrigramFigure lines={trigram.lines} size="stage" />
         <p className="hk-teach-mnemonic">{trigram.mnemonic}</p>
         <p className="hk-teach-reading">{trigram.mnemonicReading}</p>

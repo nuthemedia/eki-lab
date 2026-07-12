@@ -8,6 +8,7 @@ import NatureRhythmCard from "./NatureRhythmCard";
 import PickExercise from "./exercise/PickExercise";
 import SequenceTap from "./exercise/SequenceTap";
 import NatureSuccessVisual from "./NatureSuccessVisual";
+import StageMotif from "./StageMotif";
 
 const ALL_IDS = HAKKE_TRIGRAMS.map((t) => t.id);
 const PRENATAL_ORDER = PRENATAL_TRIGRAMS.map((t) => t.id);
@@ -21,6 +22,7 @@ type Phase = "intro" | "practice" | "rhythm";
 
 const mapSlide = (
   <>
+    <StageMotif kind="shizen" />
     <p className="hk-teach-title">形が、自然になる</p>
     <div className="hk-pair">
       {[0, 5].map((id) => {

@@ -13,10 +13,19 @@ const SOURCE_KIND_LABEL = {
   hakke: "Hakkeの覚え方",
 } as const;
 
+const CATEGORY_ICON = {
+  learning: "✦",
+  history: "⌁",
+  person: "○",
+} as const;
+
 export default function ColumnCard({ column, compact = false }: { column: HakkeColumn; compact?: boolean }) {
   return (
     <article className={`hk-column-card${compact ? " is-compact" : ""}`}>
-      <p className="hk-column-category">{CATEGORY_LABEL[column.category]}</p>
+      <p className={`hk-column-category is-${column.category}`}>
+        <span className="hk-column-icon" aria-hidden>{CATEGORY_ICON[column.category]}</span>
+        {CATEGORY_LABEL[column.category]}
+      </p>
       <h2 className="hk-column-title">{column.title}</h2>
       <p className="hk-column-body">{column.body}</p>
       {column.source ? (

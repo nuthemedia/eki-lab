@@ -42,6 +42,7 @@ import HougakuStage from "./HougakuStage";
 import ReviewFlow from "./ReviewFlow";
 import NatureStage from "./stage/NatureStage";
 import DiscoveryView from "./DiscoveryView";
+import StageMotif from "./StageMotif";
 
 type Phase =
   | "intro"
@@ -512,6 +513,7 @@ export default function HakkeApp() {
         </button>
       </div>
       <ProgressDots total={LEARNING_TRIGRAMS.length} current={step} />
+      {step === 0 && placed.length === 0 ? <StageMotif kind="tsukuru" /> : null}
       <div className="hk-guide">
         {isRecall ? (
           <>

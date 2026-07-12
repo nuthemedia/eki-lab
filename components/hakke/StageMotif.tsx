@@ -1,0 +1,29 @@
+type StageMotifKind =
+  | "tsukuru"
+  | "tonaeru"
+  | "yomu"
+  | "katachi"
+  | "shizen"
+  | "hataraki"
+  | "kazoku"
+  | "hougaku";
+
+const MOTIFS: Record<StageMotifKind, { mark: string; label: string }> = {
+  tsukuru: { mark: "☰", label: "八卦の線をつくる" },
+  tonaeru: { mark: "♪", label: "八卦の名をとなえる" },
+  yomu: { mark: "文", label: "八卦の字をよむ" },
+  katachi: { mark: "☷", label: "八卦のかたちを見る" },
+  shizen: { mark: "◌", label: "八卦を自然として見る" },
+  hataraki: { mark: "↗", label: "八卦のはたらきを見る" },
+  kazoku: { mark: "家", label: "八卦を家族として見る" },
+  hougaku: { mark: "方", label: "八卦を方角に置く" },
+};
+
+export default function StageMotif({ kind }: { kind: StageMotifKind }) {
+  const motif = MOTIFS[kind];
+  return (
+    <div className={`hk-stage-motif is-${kind}`} role="img" aria-label={motif.label}>
+      <span aria-hidden>{motif.mark}</span>
+    </div>
+  );
+}

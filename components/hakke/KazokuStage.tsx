@@ -7,6 +7,7 @@ import TrigramFigure, { type LineValue } from "./TrigramFigure";
 import PickExercise from "./exercise/PickExercise";
 import SequenceTap from "./exercise/SequenceTap";
 import FamilyPortrait from "./FamilyPortrait";
+import StageMotif from "./StageMotif";
 
 const ALL_IDS = HAKKE_TRIGRAMS.map((t) => t.id);
 /** 長→中→少 の並び */
@@ -41,6 +42,7 @@ function FamilyCell({ id }: { id: number }) {
 
 const parentsSlide = (
   <>
+    <StageMotif kind="kazoku" />
     <p className="hk-teach-title">父と母</p>
     <div className="hk-pair">
       <FamilyCell id={0} />

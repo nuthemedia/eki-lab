@@ -5,6 +5,7 @@ import type { Relation } from "@/data/hakke/trigrams";
 import { HAKKE_TRIGRAMS } from "@/data/hakke/trigrams";
 import TeachWalk from "./TeachWalk";
 import PickExercise from "./exercise/PickExercise";
+import StageMotif from "./StageMotif";
 
 type Part = {
   promptRelation: Relation;
@@ -66,6 +67,7 @@ export default function YomuStage({ onComplete, onExit }: Props) {
         eyebrow={`よむ ・ ${part + 1}/${PARTS.length}`}
         slides={[
           <div key={config.shortLabel} className="hk-yomu-intro">
+            <StageMotif kind="yomu" />
             <p className="hk-teach-title">{config.title}</p>
             <p className="hk-teach-note">{config.description}</p>
           </div>,
