@@ -357,7 +357,7 @@
 .hk-ladder-mark path {
   stroke-dasharray: 14;
   stroke-dashoffset: 14;
-  animation: hk-check-draw 0.42s ease forwards;
+  animation: hk-check-draw 0.4s ease forwards;
 }
 
 @keyframes hk-check-draw {
@@ -717,7 +717,7 @@
 /* 思い出せないときに、そっと浮かぶお手本 */
 .hk-soft-hint {
   margin-left: 18px;
-  animation: hk-soft-in 0.9s ease forwards;
+  animation: hk-soft-in 0.4s ease forwards;
 }
 
 .hk-soft-hint .hk-fig {
@@ -887,7 +887,7 @@
 }
 
 .hk-slot.is-ghost .hk-bar {
-  animation: hk-ghost 0.55s ease forwards;
+  animation: hk-ghost 0.35s ease forwards;
 }
 
 @keyframes hk-ghost {
@@ -1198,6 +1198,48 @@
   font-weight: 600;
   line-height: 1;
 }
+
+.hk-review-glyph {
+  position: relative;
+  width: 36px;
+  height: 26px;
+  display: block;
+}
+
+.hk-review-glyph::before,
+.hk-review-glyph::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.42;
+  transform-origin: center;
+}
+
+.hk-review-glyph::before {
+  top: 9px;
+  transform: rotate(-28deg);
+}
+
+.hk-review-glyph::after {
+  bottom: 8px;
+  transform: rotate(28deg);
+}
+
+.hk-review-glyph i {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border: 2px double currentColor;
+  border-radius: 3px;
+  background: var(--hk-accent-soft);
+}
+
+.hk-review-glyph i:nth-child(1) { left: 0; top: 8px; }
+.hk-review-glyph i:nth-child(2) { right: 0; top: 0; }
+.hk-review-glyph i:nth-child(3) { right: 0; bottom: 0; }
 
 .hk-stage-note {
   max-width: 340px;
@@ -1995,6 +2037,20 @@
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.hk-column-entry > summary > span:first-child {
+  min-width: 0;
+}
+
+.hk-column-read {
+  flex: 0 0 auto;
+  color: var(--hk-accent);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
 }
 
 .hk-column-entry[open] > summary {
@@ -2031,47 +2087,80 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 22px;
+  width: 100%;
+  margin-block: 12px;
+  padding: clamp(22px, 6vw, 30px) clamp(16px, 5vw, 24px);
+  border: 1px solid color-mix(in srgb, var(--hk-border) 82%, white);
+  border-radius: 26px;
+  background: color-mix(in srgb, var(--hk-surface) 82%, transparent);
+  box-shadow: 0 16px 36px rgb(43 46 56 / 7%), inset 0 1px 0 rgb(255 255 255 / 72%);
+  backdrop-filter: blur(10px);
   text-align: center;
+  overflow-y: auto;
 }
 
 .hk-celebration {
   position: relative;
-  width: 74px;
-  height: 30px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 9px;
+  width: 72px;
+  height: 72px;
+  flex: 0 0 auto;
 }
 
-.hk-celebration i {
+.hk-celebration-orbit {
+  position: absolute;
+  inset: 0;
+  animation: hk-celebrate-orbit 0.4s ease-out both;
+}
+
+.hk-celebration-orbit i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
   width: 7px;
   height: 7px;
+  margin: -3.5px;
   border-radius: 50%;
   background: var(--hk-accent);
-  animation: hk-celebrate 0.66s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transform: rotate(calc(var(--hk-i) * 45deg)) translateY(-30px);
 }
 
-.hk-celebration i:nth-child(1) {
-  animation-delay: 0.08s;
+.hk-celebration-orbit i:nth-child(1) { --hk-i: 0; }
+.hk-celebration-orbit i:nth-child(2) { --hk-i: 1; }
+.hk-celebration-orbit i:nth-child(3) { --hk-i: 2; }
+.hk-celebration-orbit i:nth-child(4) { --hk-i: 3; }
+.hk-celebration-orbit i:nth-child(5) { --hk-i: 4; }
+.hk-celebration-orbit i:nth-child(6) { --hk-i: 5; }
+.hk-celebration-orbit i:nth-child(7) { --hk-i: 6; }
+.hk-celebration-orbit i:nth-child(8) { --hk-i: 7; }
+
+@keyframes hk-celebrate-orbit {
+  from { opacity: 0; transform: scale(0.62) rotate(-18deg); }
+  to { opacity: 1; transform: scale(1) rotate(0); }
 }
 
-.hk-celebration i:nth-child(2) {
-  width: 10px;
-  height: 10px;
-  animation-delay: 0.16s;
+.hk-celebration-check {
+  position: absolute;
+  inset: 20px;
+  width: 32px;
+  height: 32px;
+  color: var(--hk-accent);
 }
 
-.hk-celebration i:nth-child(3) {
-  animation-delay: 0.24s;
+.hk-celebration-check path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 28;
+  stroke-dashoffset: 28;
+  animation: hk-celebration-check 0.32s 0.08s ease forwards;
 }
 
-@keyframes hk-celebrate {
-  0% { opacity: 0; transform: translateY(14px) scale(0.4); }
-  65% { opacity: 1; transform: translateY(-7px) scale(1.12); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+@keyframes hk-celebration-check {
+  to { stroke-dashoffset: 0; }
 }
 
 .hk-complete-title {
@@ -2118,7 +2207,7 @@
   box-shadow: 0 14px 32px rgb(43 46 56 / 7%), inset 0 1px 0 rgb(255 255 255 / 72%);
   backdrop-filter: blur(10px);
   text-align: left;
-  animation: hk-paper-in 0.42s ease both;
+  animation: hk-paper-in 0.4s ease both;
 }
 
 @keyframes hk-paper-in {
@@ -2134,6 +2223,7 @@
 @supports not (backdrop-filter: blur(1px)) {
   .hk-eyecatch-stage,
   .hk-card,
+  .hk-complete,
   .hk-column-card {
     background: var(--hk-surface);
   }
@@ -2160,6 +2250,44 @@
   font-size: 12px;
   line-height: 1;
 }
+
+.hk-column-tags {
+  display: flex;
+  gap: 7px;
+  margin: -2px 0 12px;
+}
+
+.hk-column-tag {
+  width: 30px;
+  height: 24px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--hk-accent) 34%, var(--hk-border));
+  border-radius: 8px;
+  color: var(--hk-accent);
+  background: color-mix(in srgb, var(--hk-accent-soft) 56%, transparent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.hk-jung-rings {
+  position: relative;
+  width: 20px;
+  height: 12px;
+}
+
+.hk-jung-rings i {
+  position: absolute;
+  top: 1px;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+}
+
+.hk-jung-rings i:first-child { left: 1px; }
+.hk-jung-rings i:last-child { right: 1px; }
 
 .hk-column-title {
   margin: 0;
@@ -2257,6 +2385,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .hk-root *,
+  .hk-root *::before,
+  .hk-root *::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+
   .hk-column-card {
     animation: none;
   }
@@ -2266,8 +2404,13 @@
     stroke-dashoffset: 0;
   }
 
-  .hk-celebration i {
+  .hk-celebration-orbit,
+  .hk-celebration-check path {
     animation: none;
+  }
+
+  .hk-celebration-check path {
+    stroke-dashoffset: 0;
   }
 
   .hk-ladder-item:hover:not(:disabled),
@@ -2277,10 +2420,6 @@
   .hk-yy-btn:hover:not(:disabled),
   .hk-slot:not(.is-empty):hover {
     transform: none;
-  }
-
-  .hk-slot.is-ghost .hk-bar {
-    animation-duration: 0.25s;
   }
 
   .hk-verb-motion,

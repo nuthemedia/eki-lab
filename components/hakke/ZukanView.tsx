@@ -122,7 +122,10 @@ export default function ZukanView({ initialId, onBack }: Props) {
             {readCategoryColumns.map((column) => (
               <li key={column.id}>
                 <details className="hk-column-entry">
-                  <summary>{column.title}</summary>
+                  <summary>
+                    <span>{column.title}</span>
+                    <span className="hk-column-read">✓ 既読</span>
+                  </summary>
                   <ColumnCard column={column} compact />
                 </details>
               </li>

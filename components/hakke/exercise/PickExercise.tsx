@@ -26,6 +26,7 @@ type Props = {
   choices: 2 | 4 | 8;
   /** ステージ内の現在パート */
   eyebrow?: string;
+  headerVisual?: ReactNode;
   renderSuccess?: (trigramId: number) => ReactNode;
   onComplete: () => void;
   onExit: () => void;
@@ -66,6 +67,7 @@ export default function PickExercise({
   answerRelation,
   choices,
   eyebrow,
+  headerVisual,
   renderSuccess,
   onComplete,
   onExit,
@@ -123,6 +125,7 @@ export default function PickExercise({
         </button>
       </div>
       {eyebrow ? <p className="hk-stage-eyebrow">{eyebrow}</p> : null}
+      {headerVisual}
       <ProgressDots total={order.length} current={index} />
       <div className="hk-stage hk-pick-stage">
         <div className="hk-stage-figure">

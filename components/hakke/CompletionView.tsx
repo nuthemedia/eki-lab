@@ -5,6 +5,7 @@ import type { HakkeColumn } from "@/data/hakke/columns";
 import type { HakkeMode } from "@/lib/hakkeProgress";
 import TrigramFigure from "./TrigramFigure";
 import ColumnCard from "./ColumnCard";
+import CompletionCelebration from "./CompletionCelebration";
 
 type Props = {
   /** いま完走したモード */
@@ -57,9 +58,7 @@ export default function CompletionView({
   const copy = COPY[mode];
   return (
     <div className="hk-complete">
-      <div className="hk-celebration" aria-hidden>
-        <i /><i /><i />
-      </div>
+      <CompletionCelebration />
       <h2 className="hk-complete-title">{copy.title}</h2>
       <p className="hk-complete-sub">
         {copy.sub[0]}

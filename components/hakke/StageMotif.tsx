@@ -6,7 +6,8 @@ type StageMotifKind =
   | "shizen"
   | "hataraki"
   | "kazoku"
-  | "hougaku";
+  | "hougaku"
+  | "review";
 
 const MOTIFS: Record<StageMotifKind, { mark: string; label: string }> = {
   tsukuru: { mark: "☰", label: "八卦の線をつくる" },
@@ -17,13 +18,18 @@ const MOTIFS: Record<StageMotifKind, { mark: string; label: string }> = {
   hataraki: { mark: "↗", label: "八卦のはたらきを見る" },
   kazoku: { mark: "家", label: "八卦を家族として見る" },
   hougaku: { mark: "方", label: "八卦を方角に置く" },
+  review: { mark: "", label: "複数の卦のつながりを復習する" },
 };
 
 export default function StageMotif({ kind }: { kind: StageMotifKind }) {
   const motif = MOTIFS[kind];
   return (
     <div className={`hk-stage-motif is-${kind}`} role="img" aria-label={motif.label}>
-      <span aria-hidden>{motif.mark}</span>
+      {kind === "review" ? (
+        <span className="hk-review-glyph" aria-hidden><i /><i /><i /></span>
+      ) : (
+        <span aria-hidden>{motif.mark}</span>
+      )}
     </div>
   );
 }

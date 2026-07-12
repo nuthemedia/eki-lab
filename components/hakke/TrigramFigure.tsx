@@ -20,6 +20,8 @@ type Props = {
   ghost?: LineValue | null;
   /** 爻を下からスライドインさせる */
   animate?: boolean;
+  /** 複数の爻を順番に表示する間隔(ms) */
+  staggerMs?: number;
   /** 強調する爻の index(0=下 / 1=中 / 2=上)。家族段で「一本だけ異なる爻」を示す */
   highlight?: number | null;
 };
@@ -42,6 +44,7 @@ export default function TrigramFigure({
   showEmpty = false,
   ghost = null,
   animate = false,
+  staggerMs = 0,
   highlight = null,
 }: Props) {
   const reduced = useReducedMotion();
@@ -72,7 +75,11 @@ export default function TrigramFigure({
                 className={`hk-slot${hi}`}
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.32, ease: "easeOut" }}
+                transition={{
+                  duration: 0.18,
+                  delay: (i * staggerMs) / 1000,
+                  ease: "easeOut",
+                }}
               >
                 {content}
               </motion.div>
