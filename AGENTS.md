@@ -1,21 +1,28 @@
 # eki-lab
 
-易(I Ching)を、手を動かして学ぶためのアプリ集。各アプリは Next.js App Router の1ルートとして `app/{slug}` に置く。
+易(I Ching)を、現代のインターフェースで扱う単一サイト。母体機能と追加の学習体験を、1つの Next.js アプリとして配信するモジュラーモノリス。
 
 ## 構成の約束
 
-- `app/{slug}/` — アプリのルート(layout / page / スコープド CSS)
-- `components/{slug}/` — そのアプリのクライアントコンポーネント
-- `data/{slug}/` — そのアプリの静的データ・ドメインロジック
-- `lib/{slug}*.ts` — 横断ヘルパ(localStorage ストア等)
-- `docs/apps/{slug}/` — アプリ仕様(AGENTS / PROJECT / DESIGN / FEATURES / DATA)
+- `app/(core)/` — eki-lab 母体のルート。Route Group は URL に含まれない
+- `app/{slug}/` — `/hakke` など追加体験のルート
+- `components/core/` — 母体で共有する UI と立卦表示
+- `features/` — reading / dictionary / card など母体の機能単位
+- `components/{slug}/`・`data/{slug}/` — 追加体験固有の UI・データ
+- `domain/iching/` — 八卦・64卦・卦辞・爻辞・関係計算の共有ドメイン。UI に依存させない
+- `lib/` — localStorage、LLM、OG など技術・横断ヘルパ
+- `docs/core/` — 母体仕様、`docs/apps/{slug}/` — 追加体験仕様
 - import は `@/*`(tsconfig の paths、ルート基準)
 
 ## いま入っているもの
 
-- `/hakke` — 八卦ビルダー(最初のアプリ)。仕様は `docs/apps/hakke/`。
-- ルート `/` は易インデックス(アプリ一覧)。今は `/hakke` へのリンク1枚。アプリ追加時は `app/page.tsx` の `apps` 配列にカードを足す。
-- `data/iching/hexagrams.ts` — 八卦・64卦データ(hakke が参照。将来の易占アプリの土台)。
+- `/` — eki-lab 本体「易のかたち」。問い、立卦、64卦辞典、卦カードへの入口。
+- `/hakke` — 追加の八卦学習体験。仕様は `docs/apps/hakke/`。
+- `domain/hexagrams.ts` — 八卦・64卦の共有データ。hakke からも読み取り専用で参照する。
+
+## 分割方針
+
+デプロイ単位が1つの間はワークスペース化しない。独立デプロイ、異なる所有チーム、異なるリリース周期、または複数ランタイムから共有パッケージを利用する必要が生じた場合のみ `apps/` と `packages/` の並列モノリポへ移行する。アプリをアプリの中へ入れ子にしない。
 
 ## スタック
 
