@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import type { HakkeTrigram } from "@/data/hakke/trigrams";
 import TrigramFigure from "./TrigramFigure";
@@ -8,9 +9,10 @@ type Props = {
   trigram: HakkeTrigram;
   isLast: boolean;
   onNext: () => void;
+  extraVisual?: ReactNode;
 };
 
-export default function ResultCard({ trigram, isLast, onNext }: Props) {
+export default function ResultCard({ trigram, isLast, onNext, extraVisual }: Props) {
   const reduced = useReducedMotion();
   const reveal = (order: number) =>
     reduced
@@ -29,6 +31,7 @@ export default function ResultCard({ trigram, isLast, onNext }: Props) {
       transition={{ duration: 0.4 }}
     >
       <TrigramFigure lines={trigram.lines} size="guide" />
+      {extraVisual ? <div className="hk-card-extra">{extraVisual}</div> : null}
       <motion.p className="hk-card-kanji" {...reveal(0)}>
         {trigram.name}
         <span className="hk-card-reading" style={{ display: "block" }}>

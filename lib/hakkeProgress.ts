@@ -39,6 +39,19 @@ export type HakkeProgress = {
   assoc: Record<string, Record<number, AssocStat>>;
   /** 一度でもクリアした学習ステージの slug */
   stagesCleared: string[];
+  /** 「小さな発見」の表示実績。既存データでは空。 */
+  columnStats: Record<string, ColumnStat>;
+  /** 直近に表示したコラム。連続表示を避けるため最大5件。 */
+  recentColumnIds: string[];
+  /** 次の「世界を広げる」枠で出す分類。 */
+  nextWorldColumnCategory: "history" | "person";
+  /** ステージ完了回数。学び・学び・世界の周期に使う。 */
+  columnCompletionCount: number;
+};
+
+export type ColumnStat = {
+  shown: number;
+  lastShownAt: string | null;
 };
 
 /** 対応関係×卦の学習実績 */
@@ -69,6 +82,10 @@ const EMPTY: HakkeProgress = {
   sessionStep: null,
   assoc: {},
   stagesCleared: [],
+  columnStats: {},
+  recentColumnIds: [],
+  nextWorldColumnCategory: "history",
+  columnCompletionCount: 0,
 };
 
 const EMPTY_ASSOC: AssocStat = {
@@ -110,6 +127,14 @@ function normalizeAssocStat(raw: unknown): AssocStat {
   };
 }
 
+function normalizeColumnStat(raw: unknown): ColumnStat {
+  const stat = (raw ?? {}) as Partial<ColumnStat>;
+  return {
+    shown: typeof stat.shown === "number" ? stat.shown : 0,
+    lastShownAt: typeof stat.lastShownAt === "string" ? stat.lastShownAt : null,
+  };
+}
+
 /** v1 / v2 いずれの JSON も同じ形に正規化する(assoc は v1 には無いので空になる) */
 function parseProgress(raw: string): HakkeProgress {
   const parsed = JSON.parse(raw) as Partial<HakkeProgress>;
@@ -129,6 +154,12 @@ function parseProgress(raw: string): HakkeProgress {
       }
     }
   }
+  const columnStats: Record<string, ColumnStat> = {};
+  if (parsed.columnStats && typeof parsed.columnStats === "object") {
+    for (const [id, value] of Object.entries(parsed.columnStats)) {
+      columnStats[id] = normalizeColumnStat(value);
+    }
+  }
   return {
     guidedRounds: typeof parsed.guidedRounds === "number" ? parsed.guidedRounds : 0,
     recallRounds: typeof parsed.recallRounds === "number" ? parsed.recallRounds : 0,
@@ -146,6 +177,13 @@ function parseProgress(raw: string): HakkeProgress {
     stagesCleared: Array.isArray(parsed.stagesCleared)
       ? parsed.stagesCleared.filter((s): s is string => typeof s === "string")
       : [],
+    columnStats,
+    recentColumnIds: Array.isArray(parsed.recentColumnIds)
+      ? parsed.recentColumnIds.filter((id): id is string => typeof id === "string").slice(-5)
+      : [],
+    nextWorldColumnCategory: parsed.nextWorldColumnCategory === "person" ? "person" : "history",
+    columnCompletionCount:
+      typeof parsed.columnCompletionCount === "number" ? parsed.columnCompletionCount : 0,
   };
 }
 
@@ -311,6 +349,27 @@ export function recordStageClear(slug: string): void {
   commit({ ...current, stagesCleared: [...current.stagesCleared, slug] });
 }
 
+/** コラムを既読として記録し、次回選出用の周期と履歴を進める。 */
+export function recordColumnShown(id: string, category: "learning" | "history" | "person"): void {
+  const current = getProgressSnapshot();
+  const prev = current.columnStats[id] ?? { shown: 0, lastShownAt: null };
+  commit({
+    ...current,
+    columnStats: {
+      ...current.columnStats,
+      [id]: { shown: prev.shown + 1, lastShownAt: new Date().toISOString() },
+    },
+    recentColumnIds: [...current.recentColumnIds.filter((recentId) => recentId !== id), id].slice(-5),
+    nextWorldColumnCategory:
+      category === "history"
+        ? "person"
+        : category === "person"
+          ? "history"
+          : current.nextWorldColumnCategory,
+    columnCompletionCount: current.columnCompletionCount + 1,
+  });
+}
+
 /** 対応関係×卦の実績を取得(無ければ空) */
 export function getAssocStat(relationKey: string, id: number): AssocStat {
   const current = getProgressSnapshot();
@@ -354,6 +413,30 @@ export function getWeakByRelation(relationKey: string): number[] {
 }
 
 export type ReviewItem = { relationKey: string; id: number; weakness: number };
+
+const MASTERY_RELATIONS = [
+  "form-name",
+  "form-reading",
+  "form-mnemonic",
+  "form-meaning",
+  "form-nature",
+  "form-verb",
+  "family-form",
+  "direction-form",
+] as const;
+
+/** 形を中心にした8テーマのうち、一度以上正解したテーマ数。 */
+export function getTrigramMasteryCount(
+  id: number,
+  progress: HakkeProgress = getProgressSnapshot(),
+): number {
+  return MASTERY_RELATIONS.filter((relationKey) => {
+    const direct = progress.assoc[relationKey]?.[id]?.correct ?? 0;
+    const [a, b] = relationKey.split("-");
+    const reverse = progress.assoc[`${b}-${a}`]?.[id]?.correct ?? 0;
+    return direct > 0 || reverse > 0;
+  }).length;
+}
 
 /**
  * 復習キュー。記録済みの全 association を横断し、弱い順に返す。

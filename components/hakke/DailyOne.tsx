@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "motion/react";
-import { HAKKE_TRIGRAMS } from "@/data/hakke/trigrams";
-import { recordTrigramRecall } from "@/lib/hakkeProgress";
+import { HAKKE_TRIGRAMS, pairKey } from "@/data/hakke/trigrams";
+import { recordAssoc, recordTrigramRecall } from "@/lib/hakkeProgress";
 import { playChime, playDissolve, playNature, playTap } from "@/lib/hakkeSound";
 import TrigramFigure, { type LineValue } from "./TrigramFigure";
 import YinYangButtons from "./YinYangButtons";
@@ -52,6 +52,7 @@ export default function DailyOne({ trigramId, onDone }: Props) {
       playTap();
       if (next.length === 3) {
         recordTrigramRecall(target.id, hintedRef.current);
+        recordAssoc(pairKey("form", "kanji"), target.id, !hintedRef.current);
         after(reduced ? 250 : 700, () => {
           setPhase("nature");
           setPlayKey((k) => k + 1);

@@ -50,7 +50,8 @@ Route: `/hakke`(単一クライアント状態機械)。スタック: Next 16 / 
 
 ### ステージ登録 / ルーティング
 - **`data/hakke/stages.ts`**:`STAGES`(slug/num/title/subtitle/**ready**)、`stageViews(progress)` → `{views, current}`(current=真の次、無ければ null)。
-- **`components/hakke/HakkeApp.tsx`**:状態機械。`type Phase = intro | build | nature | reveal | complete | zukan | daily | kasaneru | stage | review`。`activeStage: StageSlug|null`。`phase==="stage"` の中で slug ごとに `XxxStage` を出し分け、`phase==="review"` で `ReviewFlow`。トップ(intro)= hero + `HakkeEyecatch` + CTA + 8ステージ地図(`.hk-ladder`)+ 八卦の進捗(`.hk-tprog`)+ 足元(きょうのひとつ / ふくしゅう / ずかん / かさねる)。
+- **`components/hakke/HakkeApp.tsx`**:状態機械。`type Phase = intro | build | nature | reveal | complete | zukan | daily | kasaneru | stage | review | discovery`。`activeStage: StageSlug|null`。`phase==="stage"` の中で slug ごとに `XxxStage` を出し分け、完了後は `discovery` でコラムを表示する。トップ(intro)= hero + `HakkeEyecatch` + CTA + 8ステージ地図(`.hk-ladder`)+ 八卦の進捗(`.hk-tprog`)+ 足元(きょうのひとつ / ふくしゅう / ずかん / かさねる)。
+- **小さな発見**: 8ステージ完了時に96本から1本表示。`data/hakke/columns.ts` に学び64・歴史16・人物16を静的収録し、`lib/hakkeColumns.ts` が「学び・学び・世界」の周期、未読優先、直近5本回避を担当。ずかんの「小さな発見」で既読を再読できる。
 
 ---
 
@@ -107,7 +108,7 @@ stagesCleared: string[]
 
 ## 6. 新ステージの作り方(レシピ)
 
-1. `components/hakke/XxxStage.tsx` を作る:`{onComplete, onExit}` を受け、`phase` で **導入(`TeachWalk`)→ 練習(`PickExercise`/`SequenceTap`/新部品)→ テスト(`PickExercise`)** を進める。`YomuStage`/`ShizenStage` が手本。
+1. `components/hakke/XxxStage.tsx` を作る:`{onComplete, onExit}` を受け、`phase` で **導入(`TeachWalk`)→ 練習(`PickExercise`/`SequenceTap`/新部品)→ 仕上げ** を進める。仕上げは内容に応じてテストまたは並べ替えとし、同じ対応を続けて二重にテストしない。
 2. `data/hakke/stages.ts` の該当 slug を `ready:true`。
 3. `HakkeApp.tsx` の `phase==="stage"` 分岐に `if (activeStage==="<slug>") return <XxxStage onComplete={()=>{recordStageClear("<slug>"); backToIntro();}} onExit={backToIntro} />;`。
 4. `app/hakke/hakke.css` に最小スタイル(既存 `.hk-teach-*`/`.hk-pick-stage`/`.hk-cta` を流用)。
@@ -121,7 +122,7 @@ stagesCleared: string[]
 - **先天(となえる)と後天(方角)を同一画面に出さない**。方角の導入では先天順の並びを表示しないこと。
 - **テスト/スコア/✗・○ 語彙を使わない**。UI 語彙:つくる / そろえる / ひらく / つぎへ / もう一度。誤答は「静かに薄れる/揺れる」で表現。
 - **`domain/iching/*` は import のみ**(改変禁止)。
-- サウンドは **既定オフ**(`hakke-sound-v1`)。唱え系(となえる/自然のリズム)は **再生操作で自動ON**(`setSoundOn(true)`)。
+- サウンドは **初回オン**(`hakke-sound-v1`)。保存済みの明示的なオフは尊重し、ブラウザ制約に従って最初の操作以降に発音する。唱え系(となえる/自然のリズム)は **再生操作で自動ON**(`setSoundOn(true)`)。
 - 音声は **クリップ優先→ブラウザ読み上げ**フォールバック(`lib/hakkeVoice.ts` の `clipExists`/`speakReading`)。
 - モバイル最優先、タップ域44px、`prefers-reduced-motion` 対応、配色は生成り+白+青紫(`--hk-accent #5560d8`)。
 

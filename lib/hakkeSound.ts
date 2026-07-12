@@ -5,7 +5,7 @@
  * - 全体は chill: マスターに lowpass + 手続き的リバーブ + 低め gain、ゆっくりめのアタック。
  * - 自然音はリアル寄り: 単純なオシレーターではなく、ピンクノイズ + フィルタ + LFO の
  *   レイヤー合成で質感を作る。
- * - オン/オフは localStorage に永続化(既定オフ)。useSyncExternalStore 向けの購読ストア。
+ * - オン/オフは localStorage に永続化(初回はオン)。useSyncExternalStore 向けの購読ストア。
  */
 
 const STORAGE_KEY = "hakke-sound-v1";
@@ -18,9 +18,10 @@ function hydrate(): void {
   if (hydrated) return;
   hydrated = true;
   try {
-    soundOn = window.localStorage.getItem(STORAGE_KEY) === "1";
+    const saved = window.localStorage.getItem(STORAGE_KEY);
+    soundOn = saved === null ? true : saved === "1";
   } catch {
-    soundOn = false;
+    soundOn = true;
   }
 }
 
@@ -35,7 +36,7 @@ export function getSoundOn(): boolean {
 }
 
 export function getServerSoundOn(): boolean {
-  return false;
+  return true;
 }
 
 export function setSoundOn(next: boolean): void {

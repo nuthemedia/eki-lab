@@ -2,19 +2,23 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useReducedMotion } from "motion/react";
-import { HAKKE_TRIGRAMS, LEARNING_ORDER, LEARNING_TRIGRAMS } from "@/data/hakke/trigrams";
+import { HAKKE_TRIGRAMS, LEARNING_TRIGRAMS } from "@/data/hakke/trigrams";
 import {
   clearSession,
   getDailyTrigramId,
   getProgressSnapshot,
   getServerProgressSnapshot,
+  getTrigramMasteryCount,
   recordRoundComplete,
   recordSession,
   recordStageClear,
+  recordColumnShown,
   recordTrigramRecall,
   subscribeProgress,
   type HakkeMode,
 } from "@/lib/hakkeProgress";
+import { COLUMNS_BY_ID } from "@/data/hakke/columns";
+import { pickColumnForStage } from "@/lib/hakkeColumns";
 import { stageViews, type StageSlug } from "@/data/hakke/stages";
 import { playChime, playDissolve, playNature, playTap, unlock } from "@/lib/hakkeSound";
 import TrigramFigure, { type LineValue } from "./TrigramFigure";
@@ -37,6 +41,7 @@ import KazokuStage from "./KazokuStage";
 import HougakuStage from "./HougakuStage";
 import ReviewFlow from "./ReviewFlow";
 import NatureStage from "./stage/NatureStage";
+import DiscoveryView from "./DiscoveryView";
 
 type Phase =
   | "intro"
@@ -48,7 +53,8 @@ type Phase =
   | "daily"
   | "kasaneru"
   | "stage"
-  | "review";
+  | "review"
+  | "discovery";
 
 const HINTS = ["いちばん下から", "つぎは、まんなか", "さいごに、いちばん上"];
 /** 同じ爻で溶けた回数がここに達したら、そっとお手本が浮かぶ */
@@ -87,6 +93,7 @@ export default function HakkeApp() {
   const [activeStage, setActiveStage] = useState<StageSlug | null>(null);
   const [softHint, setSoftHint] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
   const missCountRef = useRef(0);
   const hintedRef = useRef(false);
   const timersRef = useRef<number[]>([]);
@@ -131,6 +138,15 @@ export default function HakkeApp() {
   const backToIntro = () => {
     setActiveStage(null);
     setPhase("intro");
+  };
+
+  const completeStage = (slug: StageSlug) => {
+    const column = pickColumnForStage(slug, getProgressSnapshot());
+    recordStageClear(slug);
+    recordColumnShown(column.id, column.category);
+    setActiveColumnId(column.id);
+    setActiveStage(null);
+    setPhase("discovery");
   };
 
   /** 8ステージ地図からステージを開く */
@@ -183,7 +199,12 @@ export default function HakkeApp() {
     if (step === LEARNING_TRIGRAMS.length - 1) {
       recordRoundComplete(mode);
       // つくる(guided)を1周したらステージクリア扱い
-      if (mode === "guided") recordStageClear("tsukuru");
+      if (mode === "guided") {
+        const column = pickColumnForStage("tsukuru", getProgressSnapshot());
+        recordStageClear("tsukuru");
+        recordColumnShown(column.id, column.category);
+        setActiveColumnId(column.id);
+      }
       clearSession();
       setPhase("complete");
       return;
@@ -223,18 +244,6 @@ export default function HakkeApp() {
     const hasTsukuru = progress.stagesCleared.includes("tsukuru") || progress.guidedRounds > 0;
     const hasReview = Object.keys(progress.assoc).length > 0;
 
-    // 学習済み(旧 recall/choose の実績、または よむ で正解した卦)
-    const learnedIds = new Set<number>();
-    for (let id = 0; id < HAKKE_TRIGRAMS.length; id++) {
-      const legacy = progress.perTrigram[id];
-      const legacyLearned = !!legacy && (legacy.recallBuilt > 0 || legacy.chosen > 0);
-      const assocLearned = Object.values(progress.assoc).some(
-        (byId) => (byId[id]?.correct ?? 0) > 0,
-      );
-      if (legacyLearned || assocLearned) learnedIds.add(id);
-    }
-    const learnedCount = learnedIds.size;
-
     // 中断中の周回(つくる)。1卦でも終えていれば「続きから」。
     const hasSession =
       progress.sessionMode !== null &&
@@ -255,14 +264,6 @@ export default function HakkeApp() {
       : () => {
           if (current) openStage(current.slug);
         };
-
-    // 八卦の進捗で「現在学習中」にする卦
-    let currentTrigramId: number | null = null;
-    if (hasSession && progress.sessionStep !== null) {
-      currentTrigramId = LEARNING_TRIGRAMS[progress.sessionStep].id;
-    } else if (learnedCount > 0 && learnedCount < HAKKE_TRIGRAMS.length) {
-      currentTrigramId = LEARNING_ORDER.find((id) => !learnedIds.has(id)) ?? null;
-    }
 
     return (
       <main className="hk-home">
@@ -326,24 +327,23 @@ export default function HakkeApp() {
         </ol>
 
         <div className="hk-tprog-wrap">
-          <p className="hk-tprog-label">八卦とのつながり</p>
-          <ul className="hk-tprog" aria-label="八卦とのつながり">
+          <p className="hk-tprog-label">卦ごとの習熟度</p>
+          <ul className="hk-tprog" aria-label="卦ごとの習熟度">
           {HAKKE_TRIGRAMS.map((t) => {
-            const isCurrent = t.id === currentTrigramId;
-            const learned = learnedIds.has(t.id);
-            const state = isCurrent ? "current" : learned ? "learned" : "todo";
-            const stateLabel = isCurrent
-              ? "学習中"
-              : learned
-                ? "つながり学習済み"
-                : "これから";
+            const mastery = getTrigramMasteryCount(t.id, progress);
             return (
               <li
                 key={t.id}
-                className={`hk-tprog-item is-${state}`}
-                aria-label={`${t.name}・${stateLabel}`}
+                className="hk-tprog-item"
+                aria-label={`${t.name}・8テーマ中${mastery}テーマ学習済み`}
               >
-                <span aria-hidden>{t.symbol}</span>
+                <span className="hk-tprog-symbol" aria-hidden>{t.symbol}</span>
+                <span className="hk-tprog-meter" aria-hidden>
+                  {Array.from({ length: 8 }, (_, index) => (
+                    <i key={index} className={index < mastery ? "is-filled" : undefined} />
+                  ))}
+                </span>
+                <span className="hk-tprog-count" aria-hidden>{mastery}/8</span>
               </li>
             );
           })}
@@ -392,10 +392,7 @@ export default function HakkeApp() {
     if (activeStage === "tonaeru") {
       return (
         <ChantStage
-          onComplete={() => {
-            recordStageClear("tonaeru");
-            backToIntro();
-          }}
+          onComplete={() => completeStage("tonaeru")}
           onExit={backToIntro}
         />
       );
@@ -403,10 +400,7 @@ export default function HakkeApp() {
     if (activeStage === "yomu") {
       return (
         <YomuStage
-          onComplete={() => {
-            recordStageClear("yomu");
-            backToIntro();
-          }}
+          onComplete={() => completeStage("yomu")}
           onExit={backToIntro}
         />
       );
@@ -414,10 +408,7 @@ export default function HakkeApp() {
     if (activeStage === "katachi") {
       return (
         <KatachiStage
-          onComplete={() => {
-            recordStageClear("katachi");
-            backToIntro();
-          }}
+          onComplete={() => completeStage("katachi")}
           onExit={backToIntro}
         />
       );
@@ -425,10 +416,7 @@ export default function HakkeApp() {
     if (activeStage === "shizen") {
       return (
         <ShizenStage
-          onComplete={() => {
-            recordStageClear("shizen");
-            backToIntro();
-          }}
+          onComplete={() => completeStage("shizen")}
           onExit={backToIntro}
         />
       );
@@ -436,10 +424,7 @@ export default function HakkeApp() {
     if (activeStage === "hataraki") {
       return (
         <HatarakiStage
-          onComplete={() => {
-            recordStageClear("hataraki");
-            backToIntro();
-          }}
+          onComplete={() => completeStage("hataraki")}
           onExit={backToIntro}
         />
       );
@@ -447,10 +432,7 @@ export default function HakkeApp() {
     if (activeStage === "kazoku") {
       return (
         <KazokuStage
-          onComplete={() => {
-            recordStageClear("kazoku");
-            backToIntro();
-          }}
+          onComplete={() => completeStage("kazoku")}
           onExit={backToIntro}
         />
       );
@@ -458,10 +440,7 @@ export default function HakkeApp() {
     if (activeStage === "hougaku") {
       return (
         <HougakuStage
-          onComplete={() => {
-            recordStageClear("hougaku");
-            backToIntro();
-          }}
+          onComplete={() => completeStage("hougaku")}
           onExit={backToIntro}
         />
       );
@@ -472,6 +451,11 @@ export default function HakkeApp() {
 
   if (phase === "review") {
     return <ReviewFlow onDone={backToIntro} onExit={backToIntro} />;
+  }
+
+  if (phase === "discovery") {
+    const column = activeColumnId ? COLUMNS_BY_ID.get(activeColumnId) : null;
+    return column ? <DiscoveryView column={column} onDone={backToIntro} /> : null;
   }
 
   if (phase === "zukan") {
@@ -507,6 +491,7 @@ export default function HakkeApp() {
           onContinue={() => openStage("tonaeru")}
           onOpenZukan={openZukan}
           onTop={() => setPhase("intro")}
+          column={mode === "guided" && activeColumnId ? COLUMNS_BY_ID.get(activeColumnId) : null}
         />
       </main>
     );
