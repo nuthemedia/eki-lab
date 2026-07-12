@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 import { useReducedMotion } from "motion/react";
 import { HAKKE_TRIGRAMS, LEARNING_TRIGRAMS } from "@/data/hakke/trigrams";
 import {
@@ -383,7 +384,7 @@ export default function HakkeApp() {
             </button>
             </nav>
           </section>
-          <p className="hk-rights">© 2026 HAKKE</p>
+          <Link href="/" className="hk-rights">© 2026 AWAI Commons</Link>
         </div>
       </main>
     );

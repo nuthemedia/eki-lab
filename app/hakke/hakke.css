@@ -574,6 +574,11 @@
   color: var(--hk-sub);
   font-size: 10px;
   letter-spacing: 0.12em;
+  text-decoration: none;
+}
+
+.hk-rights:hover {
+  color: var(--hk-accent);
 }
 
 /* ---------- shared buttons ---------- */
