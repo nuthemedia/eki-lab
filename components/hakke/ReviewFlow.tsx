@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { relationFromKey, type Relation } from "@/data/hakke/trigrams";
 import { getReviewQueue } from "@/lib/hakkeProgress";
 import PickExercise from "./exercise/PickExercise";
+import StageMotif from "./StageMotif";
 
 type Props = {
   onDone: () => void;
@@ -49,6 +50,7 @@ export default function ReviewFlow({ onDone, onExit }: Props) {
           </button>
         </div>
         <div className="hk-review-empty">
+          <StageMotif kind="review" />
           <p className="hk-teach-title">まだ ふくしゅう はありません</p>
           <p className="hk-teach-note">ステージを進めると、ここに苦手が集まります。</p>
           <button type="button" className="hk-cta hk-home-cta" onClick={onExit}>
@@ -70,6 +72,7 @@ export default function ReviewFlow({ onDone, onExit }: Props) {
       answerRelation={answerRelation}
       choices={4}
       eyebrow={`ふくしゅう ${gi + 1}/${groups.length} ・ ${RELATION_LABEL[promptRelation]}と${RELATION_LABEL[answerRelation]}`}
+      headerVisual={<StageMotif kind="review" />}
       onExit={onExit}
       onComplete={() => {
         if (gi === groups.length - 1) onDone();

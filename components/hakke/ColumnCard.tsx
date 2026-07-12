@@ -26,6 +26,24 @@ export default function ColumnCard({ column, compact = false }: { column: HakkeC
         <span className="hk-column-icon" aria-hidden>{CATEGORY_ICON[column.category]}</span>
         {CATEGORY_LABEL[column.category]}
       </p>
+      {column.tags?.length ? (
+        <div className="hk-column-tags">
+          {column.tags.map((tag) => (
+            <span
+              key={tag}
+              className={`hk-column-tag is-${tag}`}
+              role="img"
+              aria-label={tag === "computer" ? "コンピュータとのつながり" : "ユングとのつながり"}
+            >
+              {tag === "computer" ? (
+                <span aria-hidden>01</span>
+              ) : (
+                <span className="hk-jung-rings" aria-hidden><i /><i /></span>
+              )}
+            </span>
+          ))}
+        </div>
+      ) : null}
       <h2 className="hk-column-title">{column.title}</h2>
       <p className="hk-column-body">{column.body}</p>
       {column.source ? (

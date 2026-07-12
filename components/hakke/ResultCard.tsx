@@ -20,7 +20,7 @@ export default function ResultCard({ trigram, isLast, onNext, extraVisual }: Pro
       : {
           initial: { opacity: 0, y: 8 },
           animate: { opacity: 1, y: 0 },
-          transition: { duration: 0.5, delay: 0.15 + order * 0.4 },
+          transition: { duration: 0.22, delay: 0.04 + order * 0.06 },
         };
 
   return (
@@ -28,9 +28,9 @@ export default function ResultCard({ trigram, isLast, onNext, extraVisual }: Pro
       className="hk-card"
       initial={reduced ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: 0.24 }}
     >
-      <TrigramFigure lines={trigram.lines} size="guide" />
+      <TrigramFigure lines={trigram.lines} size="guide" animate staggerMs={80} />
       {extraVisual ? <div className="hk-card-extra">{extraVisual}</div> : null}
       <motion.p className="hk-card-kanji" {...reveal(0)}>
         {trigram.name}
