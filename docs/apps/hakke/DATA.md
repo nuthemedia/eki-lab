@@ -3,6 +3,7 @@
 ## Data Sources
 
 - `domain/hexagrams.ts` の `TRIGRAMS`・`hexagramFromLines()`・`HEXAGRAMS_BY_NUMBER`(八卦の漢字名・記号☰〜☷・自然属性・爻3本、および6爻→64卦の変換)。**読み取りのみ、変更禁止**
+- `data/hakke/columns.ts`: 完了時の「小さな発見」96本。`learning` 64本(8ステージ×8)、`history` 16本、`person` 16本。古典・研究・伝承・Hakke解釈と、人物の史実性をフィールドで区別する。
 - `data/hakke/trigrams.ts` — 上記を拡張した学習用データ(このアプリの唯一のデータソース)
 
 ## Types And Shape
@@ -47,7 +48,9 @@ type HakkeProgress = {
 
 かさねる(`components/hakke/KasaneruFlow.tsx`)は下卦・上卦の `lines` を連結した6本の配列を `hexagramFromLines()` に渡すだけで、進捗永続化は行わない。
 
-サウンド設定(`lib/hakkeSound.ts`、localStorage key: `hakke-sound-v1`、値は `"1"`/`"0"`): オン/オフのみを保持。`subscribeSound` / `getSoundOn` / `getServerSoundOn`(常に false)/ `setSoundOn` を公開する `useSyncExternalStore` 向けストア。既定オフ。音は手続き的 Web Audio で合成(アセットなし): ピンクノイズ Buffer と手続き的リバーブ IR を初回に1度だけ生成してキャッシュし、マスターに lowpass + reverb + 低め gain を通して chill にする。`nature(id)`×8 はノイズ+フィルタ+LFO のレイヤー合成、UI 音(tap/dissolve/chime/confirm)は丸い波形。オフの間は AudioContext を生成しない。
+サウンド設定(`lib/hakkeSound.ts`、localStorage key: `hakke-sound-v1`、値は `"1"`/`"0"`): オン/オフのみを保持。`subscribeSound` / `getSoundOn` / `getServerSoundOn` / `setSoundOn` を公開する `useSyncExternalStore` 向けストア。キーがない初回はオン、保存済みの値は尊重する。音は手続き的 Web Audio で合成(アセットなし): ピンクノイズ Buffer と手続き的リバーブ IR を初回に1度だけ生成してキャッシュし、マスターに lowpass + reverb + 低め gain を通して chill にする。`nature(id)`×8 はノイズ+フィルタ+LFO のレイヤー合成、UI 音(tap/dissolve/chime/confirm)は丸い波形。ページ表示だけでは鳴らさず、オフの間は AudioContext を生成しない。
+
+コラム既読は `hakke-progress-v2` 内の `columnStats`、`recentColumnIds`、`nextWorldColumnCategory`、`columnCompletionCount` に後方互換で保存する。キーやスキーマバージョンは変更せず、旧データは空履歴として正規化する。
 
 ## Scripts
 

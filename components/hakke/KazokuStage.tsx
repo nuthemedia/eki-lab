@@ -6,6 +6,7 @@ import TeachWalk from "./TeachWalk";
 import TrigramFigure, { type LineValue } from "./TrigramFigure";
 import PickExercise from "./exercise/PickExercise";
 import SequenceTap from "./exercise/SequenceTap";
+import FamilyPortrait from "./FamilyPortrait";
 
 const ALL_IDS = HAKKE_TRIGRAMS.map((t) => t.id);
 /** 長→中→少 の並び */
@@ -31,9 +32,9 @@ function FamilyCell({ id }: { id: number }) {
   const t = HAKKE_TRIGRAMS[id];
   return (
     <div className="hk-pair-cell">
+      <FamilyPortrait trigramId={id} />
       <TrigramFigure lines={t.lines} size="guide" highlight={distinctIndex(t.lines)} />
       <span className="hk-pair-kanji">{t.name}</span>
-      <span className="hk-pair-feature">{t.family}</span>
     </div>
   );
 }
@@ -100,6 +101,7 @@ export default function KazokuStage({ onComplete, onExit }: Props) {
         promptRelation="form"
         answerRelation="family"
         choices={4}
+        renderSuccess={(id) => <FamilyPortrait trigramId={id} />}
         onExit={onExit}
         onComplete={() => setPhase("male")}
       />
@@ -153,6 +155,7 @@ export default function KazokuStage({ onComplete, onExit }: Props) {
       promptRelation="family"
       answerRelation="form"
       choices={4}
+      renderSuccess={(id) => <FamilyPortrait trigramId={id} />}
       onExit={onExit}
       onComplete={onComplete}
     />

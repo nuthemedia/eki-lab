@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import {
   HAKKE_TRIGRAMS,
@@ -25,6 +26,7 @@ type Props = {
   choices: 2 | 4 | 8;
   /** ステージ内の現在パート */
   eyebrow?: string;
+  renderSuccess?: (trigramId: number) => ReactNode;
   onComplete: () => void;
   onExit: () => void;
 };
@@ -64,6 +66,7 @@ export default function PickExercise({
   answerRelation,
   choices,
   eyebrow,
+  renderSuccess,
   onComplete,
   onExit,
 }: Props) {
@@ -130,6 +133,7 @@ export default function PickExercise({
             trigram={target}
             isLast={index === order.length - 1}
             onNext={handleNext}
+            extraVisual={renderSuccess?.(targetId)}
           />
         ) : null}
       </div>

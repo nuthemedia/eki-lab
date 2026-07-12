@@ -1,8 +1,10 @@
 "use client";
 
 import { HAKKE_TRIGRAMS } from "@/data/hakke/trigrams";
+import type { HakkeColumn } from "@/data/hakke/columns";
 import type { HakkeMode } from "@/lib/hakkeProgress";
 import TrigramFigure from "./TrigramFigure";
+import ColumnCard from "./ColumnCard";
 
 type Props = {
   /** いま完走したモード */
@@ -12,6 +14,7 @@ type Props = {
   /** セルタップでその卦のずかんへ */
   onOpenZukan: (id: number) => void;
   onTop: () => void;
+  column?: HakkeColumn | null;
 };
 
 const COPY: Record<
@@ -49,6 +52,7 @@ export default function CompletionView({
   onContinue,
   onOpenZukan,
   onTop,
+  column,
 }: Props) {
   const copy = COPY[mode];
   return (
@@ -75,6 +79,12 @@ export default function CompletionView({
           </button>
         ))}
       </div>
+      {column ? (
+        <section className="hk-complete-discovery" aria-label="ひとつ、発見">
+          <p className="hk-discovery-kicker">ひとつ、発見</p>
+          <ColumnCard column={column} compact />
+        </section>
+      ) : null}
       <div className="hk-intro-actions">
         {mode === "guided" ? (
           <>

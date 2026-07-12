@@ -7,6 +7,7 @@ import TrigramFigure from "./TrigramFigure";
 import NatureRhythmCard from "./NatureRhythmCard";
 import PickExercise from "./exercise/PickExercise";
 import SequenceTap from "./exercise/SequenceTap";
+import NatureSuccessVisual from "./NatureSuccessVisual";
 
 const ALL_IDS = HAKKE_TRIGRAMS.map((t) => t.id);
 const PRENATAL_ORDER = PRENATAL_TRIGRAMS.map((t) => t.id);
@@ -16,7 +17,7 @@ type Props = {
   onExit: () => void;
 };
 
-type Phase = "intro" | "practice" | "rhythm" | "test";
+type Phase = "intro" | "practice" | "rhythm";
 
 const mapSlide = (
   <>
@@ -41,7 +42,7 @@ const mapSlide = (
 
 /**
  * Stage5「自然を見る」。自然象と形をつなぐ。
- * 導入(自然のリズム)→ 練習(形→自然)→ 並べ(自然を先天順)→ テスト(自然→形)。
+ * 導入(自然のリズム)→ 練習(形→自然)→ 仕上げ(自然を先天順に並べる)。
  */
 export default function ShizenStage({ onComplete, onExit }: Props) {
   const [phase, setPhase] = useState<Phase>("intro");
@@ -66,6 +67,7 @@ export default function ShizenStage({ onComplete, onExit }: Props) {
         promptRelation="form"
         answerRelation="nature"
         choices={4}
+        renderSuccess={(id) => <NatureSuccessVisual trigramId={id} />}
         onExit={onExit}
         onComplete={() => setPhase("rhythm")}
       />
@@ -88,21 +90,9 @@ export default function ShizenStage({ onComplete, onExit }: Props) {
           targetOrder={PRENATAL_ORDER}
           render={(id) => HAKKE_TRIGRAMS[id].nature}
           hint="自然を、先天の順にタップ"
-          onComplete={() => setPhase("test")}
+          onComplete={onComplete}
         />
       </main>
     );
   }
-
-  return (
-    <PickExercise
-      key="s-test"
-      items={ALL_IDS}
-      promptRelation="nature"
-      answerRelation="form"
-      choices={4}
-      onExit={onExit}
-      onComplete={onComplete}
-    />
-  );
 }

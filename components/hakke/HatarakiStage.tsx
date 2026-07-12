@@ -5,6 +5,7 @@ import { HAKKE_TRIGRAMS, PRENATAL_TRIGRAMS } from "@/data/hakke/trigrams";
 import TeachWalk from "./TeachWalk";
 import TrigramFigure from "./TrigramFigure";
 import PickExercise from "./exercise/PickExercise";
+import VerbMotion from "./VerbMotion";
 
 const ALL_IDS = HAKKE_TRIGRAMS.map((t) => t.id);
 
@@ -23,6 +24,7 @@ const overviewSlide = (title: string, ids: number[]) => (
         const t = HAKKE_TRIGRAMS[id];
         return (
         <li key={t.id} className="hk-teach-list-row">
+          <VerbMotion trigramId={t.id} compact />
           <TrigramFigure lines={t.lines} size="mini" />
           <span className="hk-teach-list-kanji">{t.name}</span>
           <span className="hk-teach-list-action">
@@ -44,6 +46,7 @@ const exampleSlide = (
         const t = HAKKE_TRIGRAMS[id];
         return (
           <div key={id} className="hk-pair-cell">
+            <VerbMotion trigramId={id} />
             <TrigramFigure lines={t.lines} size="guide" />
             <span className="hk-pair-kanji">{t.name}</span>
             <span className="hk-pair-feature">{t.verb}</span>
@@ -93,6 +96,7 @@ export default function HatarakiStage({ onComplete, onExit }: Props) {
         promptRelation="form"
         answerRelation="verb"
         choices={4}
+        renderSuccess={(id) => <VerbMotion trigramId={id} />}
         onExit={onExit}
         onComplete={() => setPhase("test")}
       />
@@ -106,6 +110,7 @@ export default function HatarakiStage({ onComplete, onExit }: Props) {
       promptRelation="verb"
       answerRelation="form"
       choices={4}
+      renderSuccess={(id) => <VerbMotion trigramId={id} />}
       onExit={onExit}
       onComplete={onComplete}
     />
