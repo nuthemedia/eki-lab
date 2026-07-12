@@ -37,7 +37,7 @@ export default function Image() {
           borderColor="rgba(233, 226, 208, 0.2)"
           color={CARD_MUTED}
           left="卦カードをつくって、共有する"
-          right="eki-lab.vercel.app/card"
+          right="awaicommons.com/card"
         />
       </OgFrame>
     ),

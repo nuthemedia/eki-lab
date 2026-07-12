@@ -62,7 +62,7 @@ export default function Image() {
           borderColor="rgba(233, 226, 208, 0.2)"
           color="#7d786d"
           left="易占いの儀式を、静かな視覚体験に"
-          right="eki-lab.vercel.app"
+          right="awaicommons.com"
         />
       </OgFrame>
     ),

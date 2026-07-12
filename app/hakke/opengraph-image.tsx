@@ -102,7 +102,7 @@ export default function Image() {
         }}
       >
         <span>形・読み・自然を、触れながら学ぶ</span>
-        <span>eki-lab.vercel.app/hakke</span>
+        <span>awaicommons.com/hakke</span>
       </div>
     </div>,
     size,

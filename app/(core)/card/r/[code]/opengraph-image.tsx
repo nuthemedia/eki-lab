@@ -113,7 +113,7 @@ export default async function Image({
           borderColor="rgba(233, 226, 208, 0.2)"
           color={CARD_MUTED}
           left={CARD_TAGLINE}
-          right="eki-lab.vercel.app/card"
+          right="awaicommons.com/card"
         />
       </OgFrame>
     ),
