@@ -1,0 +1,2265 @@
+/* 易のかたち — 墨・木・和紙のテーマ。globals.css には手を入れない */
+
+.ik-root {
+  --ik-bg: #17161a;
+  --ik-bg-soft: #211f24;
+  --ik-paper: #e9e2d0;
+  --ik-paper-dim: #b9b2a1;
+  --ik-muted: #7d786d;
+  --ik-line: rgba(233, 226, 208, 0.14);
+  --ik-bamboo: #c9a86d;
+  --ik-bamboo-deep: #8f7448;
+  --ik-wood: #8a6a4a;
+  --ik-wood-deep: #5d452f;
+  --ik-vermilion: #b0492f;
+  --ik-font-serif: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+
+  min-height: 100dvh;
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(233, 226, 208, 0.05), transparent 60%),
+    radial-gradient(100% 70% at 50% 110%, rgba(201, 168, 109, 0.045), transparent 55%),
+    var(--ik-bg);
+  color: var(--ik-paper);
+  line-height: 1.7;
+}
+
+.ik-frame {
+  width: 100%;
+  max-width: 480px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: clamp(20px, 5vw, 32px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- タイポグラフィ ------------------------------------------------ */
+
+.ik-serif {
+  font-family: var(--ik-font-serif);
+  font-weight: 500;
+}
+
+.ik-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--ik-muted);
+}
+
+.ik-caption {
+  font-family: var(--ik-font-serif);
+  font-size: clamp(14px, 3.8vw, 16px);
+  letter-spacing: 0.14em;
+  color: var(--ik-paper-dim);
+  text-align: center;
+}
+
+/* --- ボタン --------------------------------------------------------- */
+
+.ik-btn {
+  appearance: none;
+  border: 1px solid var(--ik-line);
+  background: transparent;
+  color: var(--ik-paper);
+  font-family: var(--ik-font-serif);
+  font-size: 15px;
+  letter-spacing: 0.22em;
+  padding: 13px 30px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color 0.4s ease, background-color 0.4s ease, color 0.4s ease;
+}
+
+.ik-btn:hover {
+  border-color: rgba(233, 226, 208, 0.4);
+}
+
+.ik-btn--primary {
+  background: var(--ik-paper);
+  border-color: var(--ik-paper);
+  color: #1d1b16;
+}
+
+.ik-btn--primary:hover {
+  background: #f4eedd;
+}
+
+/* --- トップ / モード選択 -------------------------------------------- */
+
+.ik-top {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(36px, 9vw, 56px);
+  padding: clamp(24px, 8vw, 48px) 0;
+}
+
+.ik-top-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.ik-top-title {
+  margin: 0;
+  font-family: var(--ik-font-serif);
+  font-size: clamp(38px, 11vw, 52px);
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-indent: 0.24em;
+}
+
+.ik-top-sub {
+  margin: 0;
+  font-family: var(--ik-font-serif);
+  font-size: clamp(13px, 3.6vw, 15px);
+  letter-spacing: 0.18em;
+  color: var(--ik-paper-dim);
+}
+
+.ik-mode-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ik-mode-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: clamp(18px, 5vw, 24px) clamp(18px, 5vw, 26px);
+  border: 1px solid var(--ik-line);
+  border-radius: 4px;
+  background: linear-gradient(160deg, rgba(233, 226, 208, 0.035), rgba(233, 226, 208, 0.008));
+  transition: border-color 0.4s ease, transform 0.4s ease;
+}
+
+.ik-mode-card:hover {
+  border-color: rgba(233, 226, 208, 0.36);
+  transform: translateY(-1px);
+}
+
+.ik-mode-card-title {
+  margin: 0 0 4px;
+  font-family: var(--ik-font-serif);
+  font-size: clamp(19px, 5.2vw, 22px);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+}
+
+.ik-mode-card-desc {
+  margin: 0;
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  color: var(--ik-muted);
+}
+
+.ik-mode-card-arrow {
+  color: var(--ik-muted);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* --- 導入 ------------------------------------------------------------ */
+
+.ik-intro {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(36px, 10vw, 56px);
+  text-align: center;
+}
+
+.ik-intro-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.ik-intro-line {
+  font-family: var(--ik-font-serif);
+  font-size: clamp(16px, 4.6vw, 19px);
+  letter-spacing: 0.2em;
+  color: var(--ik-paper);
+}
+
+/* --- シーン共通 ------------------------------------------------------ */
+
+.ik-scene {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 4vw, 22px);
+}
+
+.ik-scene-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ik-scene-title {
+  margin: 0;
+  font-family: var(--ik-font-serif);
+  font-size: 15px;
+  letter-spacing: 0.3em;
+  color: var(--ik-paper-dim);
+}
+
+.ik-stage {
+  position: relative;
+  height: clamp(210px, 34dvh, 280px);
+  border: 1px solid var(--ik-line);
+  border-radius: 4px;
+  background:
+    radial-gradient(90% 120% at 50% 0%, rgba(233, 226, 208, 0.04), transparent 70%),
+    var(--ik-bg-soft);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ik-stage-caption {
+  min-height: 1.8em;
+}
+
+.ik-progress {
+  display: flex;
+  justify-content: center;
+  gap: clamp(10px, 3vw, 16px);
+}
+
+.ik-progress-item {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--ik-muted);
+  opacity: 0.45;
+  transition: opacity 0.5s ease, color 0.5s ease;
+}
+
+.ik-progress-item--done {
+  opacity: 1;
+}
+
+.ik-progress-item--active {
+  opacity: 1;
+  color: var(--ik-bamboo);
+}
+
+/* --- 爻(算木)と卦 -------------------------------------------------- */
+
+.ik-yao {
+  display: flex;
+  gap: 14%;
+  width: 100%;
+  height: clamp(13px, 3.6vw, 17px);
+}
+
+.ik-yao-seg {
+  flex: 1;
+  border-radius: 3px;
+  background:
+    repeating-linear-gradient(
+      92deg,
+      rgba(0, 0, 0, 0) 0px,
+      rgba(0, 0, 0, 0) 9px,
+      rgba(0, 0, 0, 0.07) 10px,
+      rgba(0, 0, 0, 0) 12px
+    ),
+    linear-gradient(180deg, #a07a52 0%, var(--ik-wood) 45%, var(--ik-wood-deep) 100%);
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.28);
+}
+
+.ik-yao--changing .ik-yao-seg {
+  background:
+    repeating-linear-gradient(
+      92deg,
+      rgba(0, 0, 0, 0) 0px,
+      rgba(0, 0, 0, 0) 9px,
+      rgba(0, 0, 0, 0.07) 10px,
+      rgba(0, 0, 0, 0) 12px
+    ),
+    linear-gradient(180deg, #b06a48 0%, #9c5236 45%, #6e3a26 100%);
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.38),
+    0 0 0 1px rgba(176, 73, 47, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.ik-yao-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.ik-yao-mark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: rgba(233, 226, 208, 0.85);
+  pointer-events: none;
+}
+
+.ik-figure {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: clamp(9px, 2.6vw, 13px);
+  width: min(100%, clamp(170px, 52vw, 230px));
+  margin: 0 auto;
+}
+
+.ik-figure-label {
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: var(--ik-muted);
+  margin-top: 10px;
+}
+
+/* --- 再生コントロール ------------------------------------------------ */
+
+.ik-controls {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ik-control-btn {
+  appearance: none;
+  border: 1px solid var(--ik-line);
+  background: transparent;
+  color: var(--ik-paper-dim);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  padding: 8px 14px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.ik-control-btn:hover:not(:disabled) {
+  border-color: rgba(233, 226, 208, 0.4);
+  color: var(--ik-paper);
+}
+
+.ik-control-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* --- 結果 ------------------------------------------------------------ */
+
+.ik-result {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(28px, 7vw, 40px);
+  text-align: center;
+  padding: clamp(24px, 7vw, 40px) 0 clamp(20px, 6vw, 32px);
+}
+
+/* --- 卦辞・爻辞 -------------------------------------------------------- */
+
+.ik-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+
+.ik-text-block {
+  border: 1px solid var(--ik-line);
+  border-radius: 4px;
+  padding: clamp(16px, 4.6vw, 22px) clamp(16px, 4.6vw, 24px);
+  background: linear-gradient(160deg, rgba(233, 226, 208, 0.03), rgba(233, 226, 208, 0.006));
+}
+
+.ik-answer-block {
+  background: linear-gradient(160deg, rgba(233, 226, 208, 0.07), rgba(233, 226, 208, 0.02));
+  border-color: rgba(233, 226, 208, 0.28);
+  padding-top: clamp(20px, 5.4vw, 26px);
+  padding-bottom: clamp(20px, 5.4vw, 26px);
+}
+
+.ik-answer-text {
+  margin: 0;
+  font-family: var(--ik-font-serif);
+  font-size: clamp(14.5px, 4.2vw, 16px);
+  letter-spacing: 0.08em;
+  line-height: 2.1;
+  color: var(--ik-paper);
+}
+
+.ik-text-label {
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  color: var(--ik-muted);
+  margin-bottom: 12px;
+}
+
+.ik-text-label--accent {
+  color: var(--ik-vermilion);
+}
+
+.ik-text-original {
+  margin: 0 0 10px;
+  font-family: var(--ik-font-serif);
+  font-size: clamp(15px, 4.2vw, 17px);
+  letter-spacing: 0.12em;
+  line-height: 1.9;
+  color: var(--ik-paper);
+}
+
+.ik-text-modern {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.85;
+  color: var(--ik-paper-dim);
+}
+
+.ik-result-pair {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 4vw, 24px);
+}
+
+.ik-result-col {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  flex: 1;
+  max-width: 190px;
+}
+
+.ik-result-col .ik-figure {
+  width: 100%;
+}
+
+.ik-result-arrow {
+  color: var(--ik-muted);
+  font-size: 17px;
+  flex-shrink: 0;
+}
+
+.ik-result-name {
+  margin: 0;
+  font-family: var(--ik-font-serif);
+  font-size: clamp(21px, 6vw, 26px);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+}
+
+.ik-result-reading {
+  margin: 2px 0 0;
+  font-size: 11.5px;
+  letter-spacing: 0.2em;
+  color: var(--ik-muted);
+}
+
+.ik-result-role {
+  font-size: 11px;
+  letter-spacing: 0.34em;
+  color: var(--ik-muted);
+}
+
+.ik-result-note {
+  font-family: var(--ik-font-serif);
+  font-size: 14px;
+  letter-spacing: 0.16em;
+  color: var(--ik-vermilion);
+}
+
+.ik-result-note--quiet {
+  color: var(--ik-paper-dim);
+}
+
+.ik-result-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.ik-link-quiet {
+  font-size: 12.5px;
+  letter-spacing: 0.16em;
+  color: var(--ik-muted);
+  border-bottom: 1px solid transparent;
+  transition: color 0.3s ease;
+}
+
+.ik-link-quiet:hover {
+  color: var(--ik-paper-dim);
+}
+
+/* --- サイコロ --------------------------------------------------------- */
+
+.ik-dice-row {
+  display: flex;
+  justify-content: center;
+  gap: clamp(18px, 6vw, 30px);
+}
+
+.ik-die-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.ik-die-label {
+  font-size: 11px;
+  letter-spacing: 0.26em;
+  color: var(--ik-muted);
+  transition: color 0.5s ease;
+}
+
+.ik-die-label--active {
+  color: var(--ik-bamboo);
+}
+
+.ik-cube-scene {
+  width: var(--ik-die-size, 64px);
+  height: var(--ik-die-size, 64px);
+  perspective: 520px;
+}
+
+.ik-cube {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.ik-cube-face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  padding: 16%;
+  border-radius: 12%;
+  background: linear-gradient(160deg, #efe7d2 0%, #ddd2b8 55%, #c9bda0 100%);
+  box-shadow: inset 0 0 0 1px rgba(93, 69, 47, 0.22);
+  backface-visibility: hidden;
+}
+
+.ik-cube-face--kanji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-family: var(--ik-font-serif);
+  font-size: calc(var(--ik-die-size, 60px) * 0.44);
+  font-weight: 600;
+  color: #2b2620;
+}
+
+/* 八面体(易占いサイコロ)の三角フェイス */
+.ik-octa-face {
+  position: absolute;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  clip-path: polygon(50% 0, 0 100%, 100% 100%);
+  background: linear-gradient(160deg, #efe7d2 0%, #ddd2b8 55%, #c9bda0 100%);
+  backface-visibility: hidden;
+}
+
+.ik-octa-face--lower {
+  clip-path: polygon(50% 100%, 0 0, 100% 0);
+  align-items: flex-start;
+  background: linear-gradient(160deg, #e4dac2 0%, #d0c4a8 55%, #bcae90 100%);
+}
+
+.ik-octa-kanji {
+  font-family: var(--ik-font-serif);
+  font-size: calc(var(--ik-die-size, 66px) * 0.3);
+  font-weight: 600;
+  line-height: 1;
+  color: #2b2620;
+  padding: 14% 0;
+}
+
+.ik-trigram {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.ik-trigram-symbol {
+  font-size: clamp(40px, 12vw, 52px);
+  line-height: 1;
+  color: var(--ik-paper);
+}
+
+.ik-trigram-name {
+  font-family: var(--ik-font-serif);
+  font-size: 16px;
+  letter-spacing: 0.3em;
+  color: var(--ik-paper-dim);
+}
+
+/* --- 完成・大見出し ---------------------------------------------------- */
+
+.ik-reveal-name {
+  margin: 0;
+  font-family: var(--ik-font-serif);
+  font-size: clamp(30px, 9vw, 40px);
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-align: center;
+}
+
+.ik-reveal-reading {
+  margin: 8px 0 0;
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  color: var(--ik-muted);
+  text-align: center;
+}
+
+/* --- 問いを整えるフロー -------------------------------------------------- */
+
+.ik-flow {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 4vw, 20px);
+}
+
+.ik-flow-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ik-flow-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.ik-flow-col {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 4.6vw, 24px);
+}
+
+.ik-flow-center {
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 55dvh;
+}
+
+.ik-textarea {
+  width: 100%;
+  appearance: none;
+  border: 1px solid var(--ik-line);
+  border-radius: 4px;
+  background: rgba(233, 226, 208, 0.03);
+  color: var(--ik-paper);
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.8;
+  padding: 14px 16px;
+  resize: vertical;
+  transition: border-color 0.4s ease;
+}
+
+.ik-textarea:focus {
+  outline: none;
+  border-color: rgba(233, 226, 208, 0.4);
+}
+
+.ik-textarea::placeholder {
+  color: var(--ik-muted);
+  opacity: 0.75;
+}
+
+.ik-textarea-count {
+  align-self: flex-end;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--ik-muted);
+  margin-top: -8px;
+}
+
+.ik-flow-summary {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--ik-paper);
+  border-left: 2px solid var(--ik-line);
+  padding-left: 14px;
+}
+
+.ik-flow-note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--ik-muted);
+}
+
+.ik-candidate-card {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+  width: 100%;
+  padding: 15px 18px;
+  border: 1px solid var(--ik-line);
+  border-radius: 4px;
+  background: linear-gradient(160deg, rgba(233, 226, 208, 0.035), rgba(233, 226, 208, 0.008));
+  color: var(--ik-paper);
+  cursor: pointer;
+  transition: border-color 0.35s ease, transform 0.35s ease;
+}
+
+.ik-candidate-card:hover {
+  border-color: rgba(233, 226, 208, 0.36);
+  transform: translateY(-1px);
+}
+
+.ik-candidate-label {
+  font-size: 13.5px;
+  letter-spacing: 0.04em;
+}
+
+.ik-candidate-inquiry {
+  font-family: var(--ik-font-serif);
+  font-size: 12.5px;
+  letter-spacing: 0.1em;
+  color: var(--ik-paper-dim);
+}
+
+.ik-inquiry-big {
+  margin: 0;
+  font-family: var(--ik-font-serif);
+  font-size: clamp(20px, 6vw, 25px);
+  font-weight: 500;
+  line-height: 1.9;
+  letter-spacing: 0.12em;
+  text-align: center;
+}
+
+.ik-interp-essence {
+  margin: 6px 0 0;
+  font-family: var(--ik-font-serif);
+  font-size: clamp(16px, 4.6vw, 18px);
+  line-height: 2;
+  letter-spacing: 0.1em;
+  text-align: center;
+  color: var(--ik-paper);
+}
+
+.ik-linklike {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 12.5px;
+}
+
+.ik-flow-quiet-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  text-align: center;
+}
+
+/* --- 履歴 -------------------------------------------------------------- */
+
+.ik-history-item {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.ik-history-open {
+  appearance: none;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  border: 1px solid var(--ik-line);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ik-paper);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color 0.35s ease;
+}
+
+.ik-history-open:hover {
+  border-color: rgba(233, 226, 208, 0.36);
+}
+
+.ik-history-name {
+  font-size: 14px;
+  letter-spacing: 0.1em;
+}
+
+.ik-history-inquiry {
+  font-size: 12px;
+  color: var(--ik-paper-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ik-history-date {
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  color: var(--ik-muted);
+}
+
+.ik-history-delete {
+  appearance: none;
+  border: 1px solid var(--ik-line);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ik-muted);
+  width: 34px;
+  cursor: pointer;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.ik-history-delete:hover {
+  color: var(--ik-vermilion);
+  border-color: rgba(176, 73, 47, 0.5);
+}
+
+/* --- 64卦AI辞典 ------------------------------------------------------ */
+
+/* 卦画(軽量。1爻=1div、陰爻は背景グラデで中央を空ける) */
+
+.ik-glyph {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 5px;
+  width: 56px;
+}
+
+.ik-glyph-line {
+  height: 7px;
+  border-radius: 2px;
+  color: var(--ik-wood);
+  background: linear-gradient(180deg, #a07a52 0%, var(--ik-wood) 45%, var(--ik-wood-deep) 100%);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.ik-glyph-line--yin {
+  -webkit-mask: linear-gradient(to right, #000 0 43%, transparent 43% 57%, #000 57% 100%);
+  mask: linear-gradient(to right, #000 0 43%, transparent 43% 57%, #000 57% 100%);
+  box-shadow: none;
+}
+
+.ik-glyph-line--changing {
+  background: linear-gradient(180deg, #b06a48 0%, #9c5236 45%, #6e3a26 100%);
+  box-shadow: 0 0 0 1px rgba(176, 73, 47, 0.55);
+}
+
+.ik-glyph-line--yin.ik-glyph-line--changing {
+  box-shadow: none;
+}
+
+.ik-glyph--lg {
+  gap: clamp(8px, 2.2vw, 11px);
+  width: clamp(120px, 34vw, 150px);
+}
+
+.ik-glyph--lg .ik-glyph-line {
+  height: clamp(10px, 2.8vw, 13px);
+  border-radius: 3px;
+}
+
+/* 一覧: sticky ヘッダー */
+
+.ik-dict-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 0 14px;
+  background: var(--ik-bg);
+  border-bottom: 1px solid var(--ik-line);
+}
+
+.ik-dict-title {
+  margin: 0;
+  font-family: var(--ik-font-serif);
+  font-size: clamp(22px, 6vw, 26px);
+  font-weight: 500;
+  letter-spacing: 0.2em;
+}
+
+.ik-dict-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.ik-dict-search {
+  flex: 1;
+  appearance: none;
+  border: 1px solid var(--ik-line);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ik-paper);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  padding: 9px 12px;
+}
+
+.ik-dict-search::placeholder {
+  color: var(--ik-muted);
+}
+
+.ik-dict-search:focus {
+  outline: none;
+  border-color: rgba(233, 226, 208, 0.4);
+}
+
+.ik-dict-view-toggle {
+  appearance: none;
+  border: 1px solid var(--ik-line);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ik-paper-dim);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  padding: 9px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.ik-dict-view-toggle:hover {
+  border-color: rgba(233, 226, 208, 0.36);
+  color: var(--ik-paper);
+}
+
+/* 一覧: 八卦フィルタチップ */
+
+.ik-dict-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ik-dict-filter-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.ik-dict-filter-row::-webkit-scrollbar {
+  display: none;
+}
+
+.ik-dict-filter-label {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  color: var(--ik-muted);
+  width: 38px;
+}
+
+.ik-dict-chip {
+  flex-shrink: 0;
+  appearance: none;
+  border: 1px solid var(--ik-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ik-paper-dim);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  padding: 5px 11px;
+  cursor: pointer;
+  transition: border-color 0.3s ease, color 0.3s ease, background-color 0.3s ease;
+}
+
+.ik-dict-chip:hover {
+  border-color: rgba(233, 226, 208, 0.36);
+}
+
+.ik-dict-chip--active {
+  border-color: rgba(233, 226, 208, 0.5);
+  background: rgba(233, 226, 208, 0.08);
+  color: var(--ik-paper);
+}
+
+/* 一覧: カードグリッド */
+
+.ik-dict-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 18px 0 40px;
+}
+
+.ik-dict-card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 12px 16px;
+  border: 1px solid var(--ik-line);
+  border-radius: 4px;
+  background: linear-gradient(160deg, rgba(233, 226, 208, 0.035), rgba(233, 226, 208, 0.008));
+  text-align: center;
+  transition: border-color 0.4s ease, transform 0.4s ease;
+}
+
+.ik-dict-card:hover {
+  border-color: rgba(233, 226, 208, 0.36);
+  transform: translateY(-1px);
+}
+
+.ik-dict-card-number {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--ik-muted);
+}
+
+.ik-dict-card-name {
+  margin: 0;
+  font-family: var(--ik-font-serif);
+  font-size: clamp(16px, 4.4vw, 18px);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+}
+
+.ik-dict-card-reading {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--ik-paper-dim);
+}
+
+.ik-dict-card-keywords {
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--ik-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.ik-dict-empty {
+  padding: 48px 0;
+  text-align: center;
+  font-family: var(--ik-font-serif);
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  color: var(--ik-muted);
+}
+
+/* 一覧: 8×8 マトリクス */
+
+.ik-dict-matrix {
+  display: grid;
+  grid-template-columns: 32px repeat(8, 1fr);
+  gap: 4px;
+  padding: 18px 0 40px;
+  align-items: center;
+}
+
+.ik-dict-matrix-corner {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--ik-muted);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.ik-dict-matrix-head {
+  text-align: center;
+  font-family: var(--ik-font-serif);
+  font-size: 12px;
+  color: var(--ik-paper-dim);
+  line-height: 1.2;
+}
+
+.ik-dict-matrix-head small {
+  display: block;
+  font-size: 9px;
+  color: var(--ik-muted);
+}
+
+.ik-dict-matrix-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 2px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.ik-dict-matrix-cell:hover {
+  border-color: rgba(233, 226, 208, 0.3);
+  background: rgba(233, 226, 208, 0.05);
+}
+
+.ik-dict-matrix-cell .ik-glyph {
+  width: 26px;
+  gap: 2.5px;
+}
+
+.ik-dict-matrix-cell .ik-glyph-line {
+  height: 3px;
+  border-radius: 1px;
+  box-shadow: none;
+}
+
+/* 詳細: ヒーロー */
+
+.ik-dict-detail {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(20px, 5.4vw, 28px);
+  padding: clamp(20px, 6vw, 32px) 0 48px;
+}
+
+.ik-dict-breadcrumb {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ik-dict-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: clamp(28px, 8vw, 40px) clamp(20px, 6vw, 32px);
+  border: 1px solid var(--ik-line);
+  border-radius: 6px;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(233, 226, 208, 0.05), rgba(233, 226, 208, 0) 60%),
+    linear-gradient(170deg, rgba(233, 226, 208, 0.04), rgba(233, 226, 208, 0.005));
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.35),
+    0 14px 34px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.ik-dict-hero-name {
+  margin: 0;
+  font-family: var(--ik-font-serif);
+  font-size: clamp(30px, 9vw, 40px);
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-indent: 0.2em;
+}
+
+.ik-dict-hero-reading {
+  font-size: 12.5px;
+  letter-spacing: 0.16em;
+  color: var(--ik-paper-dim);
+}
+
+.ik-dict-hero-trigrams {
+  display: flex;
+  gap: 18px;
+  font-family: var(--ik-font-serif);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  color: var(--ik-paper-dim);
+}
+
+.ik-dict-hero-keywords {
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  color: var(--ik-muted);
+}
+
+.ik-dict-hero-essence {
+  margin: 0;
+  font-family: var(--ik-font-serif);
+  font-size: clamp(14px, 4vw, 16px);
+  letter-spacing: 0.1em;
+  line-height: 1.9;
+  color: var(--ik-paper);
+}
+
+/* 詳細: セクション */
+
+.ik-dict-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ik-dict-section-title {
+  margin: 0;
+  font-family: var(--ik-font-serif);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  color: var(--ik-paper-dim);
+}
+
+.ik-dict-prose {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 2;
+  letter-spacing: 0.03em;
+  color: var(--ik-paper);
+}
+
+.ik-dict-guidance {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ik-dict-guidance-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--ik-line);
+  border-radius: 4px;
+}
+
+.ik-dict-guidance-scene {
+  font-size: 10.5px;
+  letter-spacing: 0.28em;
+  color: var(--ik-muted);
+}
+
+.ik-dict-guidance-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.9;
+  color: var(--ik-paper);
+}
+
+/* 詳細: 六爻 */
+
+.ik-dict-lines {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+}
+
+.ik-dict-line {
+  border: 1px solid var(--ik-line);
+  border-radius: 4px;
+}
+
+.ik-dict-line summary {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.ik-dict-line summary::-webkit-details-marker {
+  display: none;
+}
+
+.ik-dict-line-name {
+  flex-shrink: 0;
+  font-family: var(--ik-font-serif);
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  color: var(--ik-paper);
+}
+
+.ik-dict-line-preview {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--ik-font-serif);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--ik-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ik-dict-line[open] .ik-dict-line-preview {
+  visibility: hidden;
+}
+
+.ik-dict-line-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 14px 14px;
+}
+
+.ik-dict-line-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--ik-paper-dim);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.ik-dict-line-change:hover {
+  color: var(--ik-paper);
+}
+
+.ik-dict-line-change-arrow {
+  color: var(--ik-vermilion);
+}
+
+.ik-dict-line-change .ik-glyph {
+  width: 22px;
+  gap: 2px;
+}
+
+.ik-dict-line-change .ik-glyph-line {
+  height: 2.5px;
+  border-radius: 1px;
+  box-shadow: none;
+}
+
+/* 詳細: 関係ナビ */
+
+.ik-dict-relations {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.ik-dict-relation-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 8px 12px;
+  border: 1px solid var(--ik-line);
+  border-radius: 4px;
+  background: linear-gradient(160deg, rgba(233, 226, 208, 0.03), rgba(233, 226, 208, 0.006));
+  text-align: center;
+  text-decoration: none;
+  transition: border-color 0.4s ease, transform 0.4s ease;
+}
+
+a.ik-dict-relation-card:hover {
+  border-color: rgba(233, 226, 208, 0.36);
+  transform: translateY(-1px);
+}
+
+.ik-dict-relation-kind {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--ik-muted);
+}
+
+.ik-dict-relation-card .ik-glyph {
+  width: 34px;
+  gap: 3px;
+}
+
+.ik-dict-relation-card .ik-glyph-line {
+  height: 4px;
+  border-radius: 1px;
+  box-shadow: none;
+}
+
+.ik-dict-relation-name {
+  font-family: var(--ik-font-serif);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--ik-paper);
+}
+
+.ik-dict-relation-desc {
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  color: var(--ik-muted);
+  line-height: 1.5;
+}
+
+/* 詳細: 序卦ナビ・導線 */
+
+.ik-dict-seq-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ik-dict-seq-link {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--ik-line);
+  border-radius: 4px;
+  text-decoration: none;
+  min-width: 40%;
+  transition: border-color 0.4s ease;
+}
+
+.ik-dict-seq-link:hover {
+  border-color: rgba(233, 226, 208, 0.36);
+}
+
+.ik-dict-seq-link--next {
+  text-align: right;
+  margin-left: auto;
+}
+
+.ik-dict-seq-dir {
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  color: var(--ik-muted);
+}
+
+.ik-dict-seq-name {
+  font-family: var(--ik-font-serif);
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  color: var(--ik-paper);
+}
+
+.ik-dict-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.ik-dict-cta-links {
+  display: flex;
+  gap: 22px;
+}
+
+/* --- 卦カード(/card) ------------------------------------------------- */
+
+.ik-card {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 4vw, 18px);
+  border: 1px solid var(--ik-line);
+  border-radius: 8px;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(233, 226, 208, 0.04), transparent 65%),
+    var(--ik-bg-soft);
+  padding: clamp(20px, 6vw, 30px);
+}
+
+.ik-card-top,
+.ik-card-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--ik-muted);
+}
+
+.ik-card-foot {
+  border-top: 1px solid var(--ik-line);
+  padding-top: 12px;
+}
+
+.ik-card-question {
+  font-size: clamp(15px, 4.4vw, 17px);
+  line-height: 1.8;
+  text-align: center;
+}
+
+.ik-card .ik-figure {
+  width: min(100%, 176px);
+}
+
+.ik-card-name-wrap {
+  text-align: center;
+}
+
+.ik-card-name {
+  font-size: clamp(26px, 8vw, 32px);
+  letter-spacing: 0.18em;
+}
+
+.ik-card-reading {
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: var(--ik-paper-dim);
+  margin-top: 4px;
+}
+
+.ik-card-keyword {
+  text-align: center;
+  color: var(--ik-bamboo);
+  font-size: clamp(17px, 5vw, 20px);
+  letter-spacing: 0.14em;
+}
+
+.ik-card-message {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 2;
+  color: var(--ik-paper-dim);
+}
+
+.ik-card-hint {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-left: 2px solid rgba(176, 73, 47, 0.5);
+  padding-left: 12px;
+}
+
+.ik-card-hint-label {
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  color: var(--ik-vermilion);
+}
+
+.ik-card-hint p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.9;
+  color: var(--ik-paper-dim);
+}
+
+.ik-card-qlist {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ik-card-qbtn {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--ik-line);
+  border-radius: 6px;
+  background: rgba(233, 226, 208, 0.03);
+  color: var(--ik-paper);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.7;
+  text-align: left;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+.ik-card-qbtn:hover {
+  border-color: rgba(201, 168, 109, 0.55);
+  background: rgba(233, 226, 208, 0.05);
+}
+
+.ik-card-qcat {
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  color: var(--ik-muted);
+}
+
+.ik-share-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.ik-share-row .ik-btn,
+.ik-card-cta .ik-btn {
+  display: inline-block;
+  text-decoration: none;
+  text-align: center;
+}
+
+.ik-card-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-top: 4px;
+  text-align: center;
+}
+
+/* --- トップ(/) ------------------------------------------------------- */
+
+.ik-home {
+  gap: clamp(28px, 7vw, 44px);
+}
+
+.ik-home-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ik-home-card {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 4.5vw, 22px);
+  padding: clamp(18px, 5vw, 24px) clamp(18px, 5vw, 26px);
+  border: 1px solid var(--ik-line);
+  border-radius: 4px;
+  background: linear-gradient(160deg, rgba(233, 226, 208, 0.035), rgba(233, 226, 208, 0.008));
+  transition: border-color 0.4s ease, transform 0.4s ease;
+}
+
+.ik-home-card:hover {
+  border-color: rgba(233, 226, 208, 0.36);
+  transform: translateY(-1px);
+}
+
+.ik-home-card .ik-glyph {
+  width: 34px;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.ik-home-card .ik-glyph-line {
+  height: 4px;
+  border-radius: 1.5px;
+}
+
+.ik-home-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ik-home-card-label {
+  font-size: 10px;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: var(--ik-muted);
+}
+
+.ik-home-card-title {
+  font-family: var(--ik-font-serif);
+  font-size: clamp(19px, 5.2vw, 22px);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+}
+
+.ik-home-card-desc {
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  line-height: 1.7;
+  color: var(--ik-muted);
+}
+
+.ik-home-quick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.ik-home-quick-links {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.ik-home-quick-link {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 14px 12px;
+  border: 1px solid var(--ik-line);
+  border-radius: 4px;
+  transition: border-color 0.4s ease;
+}
+
+.ik-home-quick-link:hover {
+  border-color: rgba(233, 226, 208, 0.36);
+}
+
+.ik-home-quick-title {
+  font-family: var(--ik-font-serif);
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  color: var(--ik-paper-dim);
+}
+
+.ik-home-quick-desc {
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--ik-muted);
+}
+
+/* --- トップ ライトテーマ(紙の表紙) ---------------------------------- */
+
+/* トップだけ和紙を地・墨を図に反転する。サブページはダークのまま。 */
+
+.ik-home-light,
+.ik-root:has(.ik-home-light) {
+  --ik-bg: #f5f5f0;
+  --ik-bg-soft: #ffffff;
+  --ik-paper: #2b2e38;
+  --ik-paper-dim: #626775;
+  --ik-muted: #7b7f8b;
+  --ik-line: #d8d8ce;
+  --ik-bamboo: #5560d8;
+  --ik-bamboo-deep: #4650c2;
+}
+
+.ik-root:has(.ik-home-light) {
+  background: var(--ik-bg);
+  color: var(--ik-paper);
+}
+
+.ik-home-light {
+  color: var(--ik-paper);
+}
+
+.ik-home-light .ik-home-card {
+  background: linear-gradient(160deg, rgba(38, 35, 30, 0.03), rgba(38, 35, 30, 0.006));
+}
+
+.ik-home-light .ik-home-card:hover {
+  border-color: rgba(38, 35, 30, 0.4);
+}
+
+.ik-home-light .ik-home-quick-link:hover {
+  border-color: rgba(38, 35, 30, 0.4);
+}
+
+/* モバイルの押下フィードバック */
+.ik-home-card:active,
+.ik-home-quick-link:active {
+  transform: scale(0.99);
+  border-color: rgba(38, 35, 30, 0.4);
+}
+
+.ik-nowrap {
+  white-space: nowrap;
+}
+
+/* リード(タグライン) */
+
+.ik-home-lead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.ik-home-lead-title {
+  margin: 0;
+  font-family: var(--ik-font-serif);
+  font-size: clamp(18px, 5vw, 21px);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  line-height: 1.9;
+}
+
+.ik-home-lead-en {
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ik-muted);
+}
+
+.ik-home-lead-sub {
+  margin: 0;
+  font-size: 12.5px;
+  letter-spacing: 0.08em;
+  color: var(--ik-paper-dim);
+}
+
+.ik-home-about-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--ik-paper-dim);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  line-height: 2;
+}
+
+.ik-home-about-copy p {
+  margin: 0;
+}
+
+/* AWAI Commonsトップ。Hakkeと同じ明るいプロダクトトーンに揃える。 */
+
+.awai-home {
+  gap: clamp(32px, 8vw, 52px);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+.awai-brand,
+.awai-hero,
+.awai-about,
+.awai-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.awai-brand {
+  gap: 6px;
+}
+
+.awai-brand-title {
+  margin: 0;
+  font-size: clamp(34px, 10vw, 48px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+}
+
+.awai-brand-ja {
+  margin: 0;
+  color: var(--ik-paper-dim);
+  font-size: 14px;
+  letter-spacing: 0.12em;
+}
+
+.awai-hero {
+  gap: 10px;
+}
+
+.awai-hero h2,
+.awai-about h2 {
+  margin: 0;
+  font-family: inherit;
+  font-size: clamp(24px, 7vw, 32px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.5;
+}
+
+.awai-hero-tagline,
+.awai-hero-copy {
+  margin: 0;
+}
+
+.awai-hero-tagline {
+  color: var(--ik-paper-dim);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.awai-hero-en {
+  color: var(--ik-muted);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.awai-hero-copy {
+  max-width: 34em;
+  color: var(--ik-paper-dim);
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.awai-home .ik-wheel-disc {
+  background-color: var(--ik-bg-soft);
+  border-radius: 50%;
+  box-shadow: 0 18px 38px rgb(43 46 56 / 12%);
+}
+
+.awai-home .ik-wheel-center {
+  border-radius: 24px;
+}
+
+.awai-home .ik-wheel-center::before {
+  background: radial-gradient(50% 50% at 50% 50%, rgb(255 255 255 / 94%) 55%, transparent 78%);
+}
+
+.awai-hakke-card {
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgb(43 46 56 / 7%);
+}
+
+.awai-home .ik-home-card-title {
+  font-family: inherit;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.awai-hakke-cta {
+  align-self: flex-start;
+  min-height: 48px;
+  margin-top: 12px;
+  padding: 0 24px;
+  border-radius: 999px;
+  background: #5560d8;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.awai-about {
+  gap: 18px;
+}
+
+.awai-about .ik-home-about-copy {
+  max-width: 38em;
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.awai-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.awai-note-link {
+  min-height: 48px;
+  padding: 0 24px;
+  border: 1px solid var(--ik-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ik-paper);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.awai-x-link {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border: 1px solid #111;
+  border-radius: 50%;
+  background: #111;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.awai-x-link span {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 27px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.awai-note-link:hover {
+  border-color: color-mix(in srgb, #5560d8 48%, var(--ik-line));
+}
+
+.awai-x-link:hover {
+  background: #2b2e38;
+  border-color: #2b2e38;
+}
+
+.awai-footer {
+  gap: 6px;
+  padding-top: 28px;
+  border-top: 1px solid var(--ik-line);
+  color: var(--ik-paper-dim);
+}
+
+.awai-footer strong {
+  color: var(--ik-paper);
+  font-size: 15px;
+  letter-spacing: 0.04em;
+}
+
+.awai-footer span,
+.awai-footer p,
+.awai-footer small {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+
+.awai-footer small {
+  margin-top: 10px;
+  color: var(--ik-muted);
+}
+
+.awai-footer .awai-x-link {
+  margin-top: 12px;
+}
+
+/* 信頼チップ */
+
+.ik-home-chips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.ik-home-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 12px 8px;
+  border: 1px solid var(--ik-line);
+  border-radius: 4px;
+  text-align: center;
+}
+
+.ik-home-chip-title {
+  font-family: var(--ik-font-serif);
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  color: var(--ik-paper-dim);
+}
+
+.ik-home-chip-en {
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ik-muted);
+}
+
+/* カードCTAラベル */
+
+.ik-home-card-cta {
+  margin-top: 4px;
+  font-family: var(--ik-font-serif);
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--ik-bamboo-deep);
+}
+
+/* 64卦ホイール */
+
+.ik-wheel-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.ik-wheel {
+  position: relative;
+  width: min(100%, 400px);
+  margin: 0 auto;
+  outline: none;
+}
+
+.ik-wheel-stage {
+  perspective: 900px;
+}
+
+.ik-wheel-disc {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease-out;
+  will-change: transform;
+}
+
+.ik-wheel.is-dragging .ik-wheel-disc {
+  transition: none;
+}
+
+/* 円盤の落ち影 */
+.ik-wheel-disc::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: -4%;
+  height: 10%;
+  border-radius: 50%;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(38, 35, 30, 0.14), transparent 70%);
+  transform: translateZ(-40px);
+  pointer-events: none;
+}
+
+.ik-wheel-hint {
+  margin: 0;
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  color: var(--ik-muted);
+  text-align: center;
+}
+
+.ik-wheel:focus-visible {
+  outline: 1px solid var(--ik-bamboo-deep);
+  outline-offset: 6px;
+  border-radius: 50%;
+}
+
+.ik-wheel svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.ik-wheel.is-dragging svg {
+  cursor: grabbing;
+}
+
+.ik-wheel-ring {
+  fill: none;
+  stroke: var(--ik-line);
+  stroke-width: 1;
+}
+
+.ik-wheel-marker {
+  fill: var(--ik-vermilion);
+}
+
+.ik-wheel-glyph rect:not(.ik-wheel-hit) {
+  fill: var(--ik-paper-dim);
+  opacity: 0.6;
+}
+
+.ik-wheel-hit {
+  fill: transparent;
+}
+
+.ik-wheel-glyph text {
+  fill: var(--ik-paper-dim);
+  font-size: 7px;
+  letter-spacing: 0.05em;
+}
+
+.ik-wheel-glyph.is-selected rect:not(.ik-wheel-hit) {
+  fill: var(--ik-paper);
+  opacity: 1;
+}
+
+.ik-wheel-glyph.is-selected text {
+  fill: var(--ik-vermilion);
+  font-weight: 600;
+}
+
+.ik-wheel-trigram text {
+  fill: var(--ik-muted);
+  font-family: var(--ik-font-serif);
+}
+
+.ik-wheel-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  pointer-events: none;
+  z-index: 1; /* ::before(z-index:-1)を自分の背面に留める */
+}
+
+/* 傾いた円盤の上に直立して浮かぶカードの気配(発光ではなく紙のベール) */
+.ik-wheel-center::before {
+  content: "";
+  position: absolute;
+  width: 210px;
+  height: 210px;
+  border-radius: 50%;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(251, 249, 242, 0.9) 55%, transparent 78%);
+  z-index: -1;
+}
+
+.ik-wheel-center .ik-glyph {
+  width: 40px;
+  gap: 3px;
+}
+
+.ik-wheel-center .ik-glyph-line {
+  height: 4.5px;
+  border-radius: 1.5px;
+}
+
+.ik-wheel-center-name {
+  font-family: var(--ik-font-serif);
+  font-size: clamp(19px, 5vw, 22px);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+}
+
+.ik-wheel-center-reading {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--ik-muted);
+}
+
+.ik-wheel-center-essence {
+  max-width: 140px;
+  margin: 0;
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  line-height: 1.55;
+  color: var(--ik-paper-dim);
+}
+
+.ik-wheel-center-link {
+  margin-top: 2px;
+  pointer-events: auto;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--ik-bamboo-deep);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ik-root *,
+  .ik-root *::before,
+  .ik-root *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
