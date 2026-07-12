@@ -5,6 +5,7 @@ import { HAKKE_TRIGRAMS } from "@/data/hakke/trigrams";
 import TeachWalk from "./TeachWalk";
 import TrigramFigure from "./TrigramFigure";
 import PlaceBoard, { POSTNATAL_LAYOUT, ID_BY_DIR } from "./exercise/PlaceBoard";
+import StageMotif from "./StageMotif";
 
 type Props = {
   onComplete: () => void;
@@ -21,6 +22,7 @@ const ALL = HAKKE_TRIGRAMS.map((t) => t.id);
 
 const introSlide = (
   <>
+    <StageMotif kind="hougaku" />
     <p className="hk-teach-title">方角は、別のならび</p>
     <p className="hk-teach-note">
       最初に覚えた並び(となえる)とは別に、

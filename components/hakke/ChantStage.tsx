@@ -5,6 +5,7 @@ import { PRENATAL_TRIGRAMS } from "@/data/hakke/trigrams";
 import { setSoundOn, unlock } from "@/lib/hakkeSound";
 import { chantExists, speakReading, stopSpeaking } from "@/lib/hakkeVoice";
 import SequenceTap from "./exercise/SequenceTap";
+import StageMotif from "./StageMotif";
 
 type Props = {
   onComplete: () => void;
@@ -170,6 +171,7 @@ export default function ChantStage({ onComplete, onExit }: Props) {
       {steps(1)}
 
       <div className="hk-chant-lead">
+        <StageMotif kind="tonaeru" />
         <h2 className="hk-chant-lead-title">順番ごと、声で覚えよう</h2>
         <p className="hk-chant-lead-note">
           形の組み合わせで決まる、昔からの基本順（先天順）

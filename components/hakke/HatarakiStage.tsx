@@ -6,6 +6,7 @@ import TeachWalk from "./TeachWalk";
 import TrigramFigure from "./TrigramFigure";
 import PickExercise from "./exercise/PickExercise";
 import VerbMotion from "./VerbMotion";
+import StageMotif from "./StageMotif";
 
 const ALL_IDS = HAKKE_TRIGRAMS.map((t) => t.id);
 
@@ -40,6 +41,7 @@ const overviewSlide = (title: string, ids: number[]) => (
 
 const exampleSlide = (
   <>
+    <StageMotif kind="hataraki" />
     <p className="hk-teach-title">形に、はたらきがある</p>
     <div className="hk-pair">
       {[3, 6].map((id) => {
