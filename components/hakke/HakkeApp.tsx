@@ -33,6 +33,7 @@ import DailyOne from "./DailyOne";
 import KasaneruFlow from "./KasaneruFlow";
 import HakkeEyecatch from "./HakkeEyecatch";
 import AboutHakkeDialog from "./AboutHakkeDialog";
+import KofiSupportDialog from "./KofiSupportDialog";
 import ChantStage from "./ChantStage";
 import YomuStage from "./YomuStage";
 import KatachiStage from "./KatachiStage";
@@ -95,6 +96,7 @@ export default function HakkeApp() {
   const [activeStage, setActiveStage] = useState<StageSlug | null>(null);
   const [softHint, setSoftHint] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [kofiOpen, setKofiOpen] = useState(false);
   const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
   const missCountRef = useRef(0);
   const hintedRef = useRef(false);
@@ -278,6 +280,7 @@ export default function HakkeApp() {
           ?
         </button>
         <AboutHakkeDialog open={aboutOpen} onClose={() => setAboutOpen(false)} />
+        <KofiSupportDialog open={kofiOpen} onClose={() => setKofiOpen(false)} />
 
         <header className="hk-hero">
           <h1 className="hk-hero-title">HAKKE</h1>
@@ -387,14 +390,13 @@ export default function HakkeApp() {
           <div className="hk-kofi-divider" aria-hidden="true" />
           <aside className="hk-kofi-card" aria-labelledby="hk-kofi-title">
             <h2 id="hk-kofi-title">易アプリの開発を応援する</h2>
-            <a
-              href="https://ko-fi.com/awaicommons"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
               className="hk-kofi-link"
+              onClick={() => setKofiOpen(true)}
             >
               Ko-fiで応援する
-            </a>
+            </button>
           </aside>
           <Link href="/" className="hk-rights">© 2026 AWAI Commons</Link>
         </div>
