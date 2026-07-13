@@ -11,6 +11,11 @@ export const metadata: Metadata = {
 
 const apps = [
   {
+    slug: "coin",
+    title: "コイン易占い",
+    desc: "問いを立て、三枚のコインを六回投げて、卦を読む。",
+  },
+  {
     slug: "hakke",
     title: "八卦をつくる",
     desc: "陰と陽を選んで、下から三本。自分の手で八卦をつくる。",

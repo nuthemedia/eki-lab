@@ -7,7 +7,10 @@ const description = "三枚のコインを六回投げて易の卦を立てるWe
 export const metadata: Metadata = {
   title: { absolute: title },
   description,
-  alternates: { canonical: "https://awaicommons.com/coin" },
+  alternates: {
+    canonical: "https://awaicommons.com/coin",
+    languages: { ja: "https://awaicommons.com/coin", en: "https://awaicommons.com/coin/en" },
+  },
   openGraph: {
     title,
     description,
@@ -21,5 +24,5 @@ export const metadata: Metadata = {
 };
 
 export default function CoinPage() {
-  return <CoinApp />;
+  return <CoinApp locale="ja" />;
 }

@@ -7,7 +7,7 @@ export default function CoinLayout({ children }: Readonly<{ children: React.Reac
       <div className="coin-frame">
         {children}
         <footer className="coin-footer">
-          <Link href="/" aria-label="AWAI Commons トップへ">
+          <Link href="/" aria-label="AWAI Commons home">
             © 2026 AWAI Commons
           </Link>
         </footer>
