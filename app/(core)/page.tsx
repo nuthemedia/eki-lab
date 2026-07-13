@@ -7,7 +7,7 @@ import { HEXAGRAM_DICTIONARY } from "@/domain/iching/hexagramDictionary";
 
 const title = "AWAI Commons｜易を学び、変化を見る";
 const description =
-  "AWAI Commonsは、易や古典を現代の体験としてひらく活動です。八卦をつくって覚えるHakkeを公開しています。";
+  "AWAI Commonsは、八卦をつくって学ぶHAKKEをはじめ、易を手を動かして体験するアプリを公開しています。";
 
 export const metadata: Metadata = {
   title: {
@@ -37,21 +37,12 @@ export const metadata: Metadata = {
     siteName,
     locale: "ja_JP",
     type: "website",
-    images: [
-      {
-        url: "/brand/awai-commons-note-header.png",
-        width: 1733,
-        height: 908,
-        alt: "AWAI Commons",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title,
     description,
     creator: "@AWAIcommons",
-    images: ["/brand/awai-commons-note-header.png"],
   },
 };
 
