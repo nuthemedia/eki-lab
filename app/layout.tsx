@@ -7,8 +7,8 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://awaicommons.com";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "eki-lab",
-    template: "%s | eki-lab",
+    default: "AWAI Commons",
+    template: "%s | AWAI Commons",
   },
   description: "易(I Ching)を、手を動かして学ぶ。八卦をつくるところから。",
 };

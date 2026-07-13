@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
           }}
         >
           <div style={{ display: "flex" }}>易のかたち</div>
-          <div style={{ display: "flex" }}>eki-lab</div>
+          <div style={{ display: "flex" }}>AWAI Commons</div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
