@@ -1874,8 +1874,7 @@ a.ik-dict-relation-card:hover {
   line-height: 1.5;
 }
 
-.awai-hero-tagline,
-.awai-hero-copy {
+.awai-hero-tagline {
   margin: 0;
 }
 
@@ -1893,13 +1892,6 @@ a.ik-dict-relation-card:hover {
   text-transform: uppercase;
 }
 
-.awai-hero-copy {
-  max-width: 34em;
-  color: var(--ik-paper-dim);
-  font-size: 14px;
-  line-height: 1.9;
-}
-
 .awai-home .ik-wheel-disc {
   background-color: var(--ik-bg-soft);
   border-radius: 50%;
@@ -1914,7 +1906,8 @@ a.ik-dict-relation-card:hover {
   background: radial-gradient(50% 50% at 50% 50%, rgb(255 255 255 / 94%) 55%, transparent 78%);
 }
 
-.awai-hakke-card {
+.awai-hakke-card,
+.awai-coin-card {
   border-radius: 24px;
   background: #fff;
   box-shadow: 0 8px 24px rgb(43 46 56 / 7%);
@@ -1926,13 +1919,13 @@ a.ik-dict-relation-card:hover {
   letter-spacing: 0.06em;
 }
 
-.awai-hakke-cta {
+.awai-hakke-cta,
+.awai-coin-cta {
   align-self: flex-start;
   min-height: 48px;
   margin-top: 12px;
   padding: 0 24px;
   border-radius: 999px;
-  background: #5560d8;
   color: #fff;
   display: inline-flex;
   align-items: center;
@@ -1940,6 +1933,16 @@ a.ik-dict-relation-card:hover {
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.08em;
+}
+
+.awai-hakke-cta {
+  background: #5560d8;
+}
+
+.awai-coin-cta {
+  border: 1px solid #b58a42;
+  background: #0f4c45;
+  box-shadow: inset 0 1px rgb(255 255 255 / 18%);
 }
 
 .awai-about {

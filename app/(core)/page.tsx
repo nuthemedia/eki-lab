@@ -71,14 +71,11 @@ export default function AwaiCommonsHomePage() {
         <h2>古典を、触れるかたちに。</h2>
         <p className="awai-hero-tagline">易を学び、変化を見る。</p>
         <span className="awai-hero-en">Learn the I Ching. Read change.</span>
-        <p className="awai-hero-copy">
-          古代の知恵を、読むだけでなく、つくり、眺め、問い直すための体験へ。
-        </p>
       </section>
 
       <HexagramWheel hexagrams={buildWheelHexagrams()} showDetailLink={false} />
 
-      <section aria-labelledby="hakke-title">
+      <section className="ik-home-cards" aria-label="プロダクト">
         <Link href="/hakke" className="ik-home-card awai-hakke-card">
           <span className="ik-home-card-body">
             <span className="ik-home-card-label">HAKKE</span>
@@ -91,16 +88,31 @@ export default function AwaiCommonsHomePage() {
             <span className="awai-hakke-cta">Hakkeをはじめる →</span>
           </span>
         </Link>
+
+        <Link href="/coin" className="ik-home-card awai-coin-card">
+          <span className="ik-home-card-body">
+            <span className="ik-home-card-label">COIN I CHING</span>
+            <span id="coin-title" className="ik-home-card-title">
+              コイン易占い
+            </span>
+            <span className="ik-home-card-desc">
+              問いを立て、三枚のコインを六回投げて、卦を読む。
+            </span>
+            <span className="awai-coin-cta">占いをはじめる →</span>
+          </span>
+        </Link>
       </section>
 
       <section className="awai-about" aria-labelledby="about-title">
         <h2 id="about-title">易を学び、変化を見る。</h2>
         <div className="ik-home-about-copy">
-          <p>易は、未来を決めるためだけのものではない。</p>
+          <p>易は未来を当てるだけのものではありません。</p>
           <p>
-            変化の兆しを見つめ、いまの自分の立ち位置を考えるための知恵でもある。
+            変化の兆しを見つめ、いまの自分の立ち位置を考えるための知恵でもあります。
           </p>
-          <p>AWAI Commonsは、易や古典を現代の体験としてひらいていきます。</p>
+          <p>
+            AWAI Commonsはともに易を学び、暮らしに役立てていくことを目指します。
+          </p>
         </div>
       </section>
 
