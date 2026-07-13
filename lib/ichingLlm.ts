@@ -18,6 +18,9 @@ type LlmCallOptions = {
   schema: Record<string, unknown>;
   maxOutputTokens: number;
   timeoutMs?: number;
+  maxAttempts?: number;
+  reasoningEffort?: "none" | "minimal" | "low" | "medium" | "high";
+  verbosity?: "low" | "medium" | "high";
 };
 
 export async function callIchingLlm<T>(options: LlmCallOptions): Promise<T> {
@@ -27,6 +30,16 @@ export async function callIchingLlm<T>(options: LlmCallOptions): Promise<T> {
   }
 
   const timeoutMs = options.timeoutMs ?? 30000;
+  const text: Record<string, unknown> = {
+    format: {
+      type: "json_schema",
+      name: options.schemaName,
+      strict: true,
+      schema: options.schema,
+    },
+  };
+  if (options.verbosity) text.verbosity = options.verbosity;
+
   const body: Record<string, unknown> = {
     model: options.model,
     input: [
@@ -34,22 +47,16 @@ export async function callIchingLlm<T>(options: LlmCallOptions): Promise<T> {
       { role: "user", content: options.user },
     ],
     max_output_tokens: options.maxOutputTokens,
-    text: {
-      format: {
-        type: "json_schema",
-        name: options.schemaName,
-        strict: true,
-        schema: options.schema,
-      },
-    },
+    text,
   };
   // gpt-5 系は推論トークンが出力上限を圧迫するため最小にする
   if (options.model.startsWith("gpt-5")) {
-    body.reasoning = { effort: "minimal" };
+    body.reasoning = { effort: options.reasoningEffort ?? "minimal" };
   }
 
   let lastError: unknown;
-  for (let attempt = 1; attempt <= 2; attempt += 1) {
+  const maxAttempts = options.maxAttempts ?? 2;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
@@ -86,7 +93,7 @@ export async function callIchingLlm<T>(options: LlmCallOptions): Promise<T> {
         error instanceof Error && error.name === "AbortError"
           ? new Error(`OpenAI request timed out after ${timeoutMs / 1000}s`)
           : error;
-      if (attempt < 2) {
+      if (attempt < maxAttempts) {
         await new Promise((resolve) => setTimeout(resolve, 800));
       }
     } finally {
