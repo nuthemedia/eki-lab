@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   if (!primary) return new Response("invalid payload", { status: 400 });
   const entry = HEXAGRAM_DICTIONARY[primaryNumber];
   return new ImageResponse(<div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "#F7F3EA", color: "#1F2320", padding: "92px 76px", fontFamily: "sans-serif", border: "8px solid #B58A42" }}>
-    <div style={{ display: "flex", justifyContent: "space-between", color: "#6D6A61", fontSize: 26, letterSpacing: 5 }}><span>コイン易占い</span><span>eki-lab</span></div>
+    <div style={{ display: "flex", justifyContent: "space-between", color: "#6D6A61", fontSize: 26, letterSpacing: 5 }}><span>コイン易占い</span><span>AWAI Commons</span></div>
     {question && <div style={{ display: "flex", flexDirection: "column", marginTop: 72, padding: 30, border: "2px solid rgba(120,105,75,.22)", borderRadius: 24, background: "rgba(255,255,255,.52)" }}><span style={{ color: "#B58A42", fontSize: 22 }}>問い</span><span style={{ fontSize: 38, lineHeight: 1.5, marginTop: 12 }}>{question}</span></div>}
     <div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent: "space-around", marginTop: 50 }}>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 28 }}><span style={{ color: "#6D6A61", fontSize: 24 }}>本卦　第{primary.number}卦</span><span style={{ fontSize: 62, fontWeight: 700 }}>{primary.name}</span><OgLines number={primary.number} changing={changing} /></div>
