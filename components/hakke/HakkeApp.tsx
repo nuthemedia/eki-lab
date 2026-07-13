@@ -384,6 +384,18 @@ export default function HakkeApp() {
             </button>
             </nav>
           </section>
+          <div className="hk-kofi-divider" aria-hidden="true" />
+          <aside className="hk-kofi-card" aria-labelledby="hk-kofi-title">
+            <h2 id="hk-kofi-title">易アプリの開発を応援する</h2>
+            <a
+              href="https://ko-fi.com/awaicommons"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hk-kofi-link"
+            >
+              Ko-fiで応援する
+            </a>
+          </aside>
           <Link href="/" className="hk-rights">© 2026 AWAI Commons</Link>
         </div>
       </main>
