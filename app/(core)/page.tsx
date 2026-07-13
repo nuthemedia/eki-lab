@@ -118,7 +118,7 @@ export default function AwaiCommonsHomePage() {
 
       <nav className="awai-note" aria-label="外部リンク">
         <a
-          href="https://note.com/fit_violet9730/n/n8f86b3a3c6e4"
+          href="https://note.com/awaicommons"
           className="awai-note-link"
           target="_blank"
           rel="noreferrer"
