@@ -1,0 +1,7 @@
+.coin-en-app .coin-direction{white-space:pre-line}
+.coin-en-app .coin-disc-inner img{object-fit:contain}
+.coin-en-app .coin-intro-note{text-align:center;color:var(--c-muted);font-size:12px;line-height:1.65;margin:-8px 8px 0}
+.coin-en-app .coin-reading-source a{color:var(--c-primary);text-underline-offset:3px}
+.coin-en-app .coin-original{margin-top:12px;padding:9px 11px;border:1px solid var(--c-border);border-radius:10px;background:rgba(255,255,255,.28)}
+.coin-en-app .coin-original summary{cursor:pointer;color:var(--c-primary);font-size:12px}
+.coin-en-app .coin-original p{margin-bottom:0}
