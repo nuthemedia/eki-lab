@@ -1906,11 +1906,29 @@ a.ik-dict-relation-card:hover {
   background: radial-gradient(50% 50% at 50% 50%, rgb(255 255 255 / 94%) 55%, transparent 78%);
 }
 
+.awai-taikyoku-card,
 .awai-hakke-card,
 .awai-coin-card {
   border-radius: 24px;
   background: #fff;
   box-shadow: 0 8px 24px rgb(43 46 56 / 7%);
+}
+
+.ik-home-light .awai-taikyoku-card {
+  border-color: rgb(181 138 66 / 46%);
+  color: #f4ede0;
+  background:
+    radial-gradient(circle at 88% 4%, rgb(214 189 130 / 12%), transparent 36%),
+    linear-gradient(150deg, #4a453c, #242522 74%);
+  box-shadow: 0 10px 24px rgb(43 46 56 / 11%);
+}
+
+.awai-taikyoku-card .ik-home-card-label {
+  color: #d6bd82;
+}
+
+.awai-taikyoku-card .ik-home-card-desc {
+  color: #d0c8b8;
 }
 
 .awai-home .ik-home-card-title {
@@ -1919,6 +1937,7 @@ a.ik-dict-relation-card:hover {
   letter-spacing: 0.06em;
 }
 
+.awai-taikyoku-cta,
 .awai-hakke-cta,
 .awai-coin-cta {
   align-self: flex-start;
@@ -1933,6 +1952,13 @@ a.ik-dict-relation-card:hover {
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.08em;
+}
+
+.awai-taikyoku-cta {
+  border: 1px solid rgb(214 189 130 / 72%);
+  color: #ead9b1;
+  background: rgb(19 20 18 / 62%);
+  box-shadow: inset 0 1px rgb(255 255 255 / 10%);
 }
 
 .awai-hakke-cta {

@@ -76,6 +76,19 @@ export default function AwaiCommonsHomePage() {
       <HexagramWheel hexagrams={buildWheelHexagrams()} showDetailLink={false} />
 
       <section className="ik-home-cards" aria-label="プロダクト">
+        <Link href="/taikyoku" className="ik-home-card awai-taikyoku-card">
+          <span className="ik-home-card-body">
+            <span className="ik-home-card-label">TAIKYOKU</span>
+            <span id="taikyoku-title" className="ik-home-card-title">
+              易有太極
+            </span>
+            <span className="ik-home-card-desc">
+              「易に太極あり」をヴィジュアルで体験する。
+            </span>
+            <span className="awai-taikyoku-cta">体験をはじめる →</span>
+          </span>
+        </Link>
+
         <Link href="/hakke" className="ik-home-card awai-hakke-card">
           <span className="ik-home-card-body">
             <span className="ik-home-card-label">HAKKE</span>
