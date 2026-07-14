@@ -7,10 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "test": "vitest run",
     "test:iching": "vitest run domain/iching/relations.test.ts",
     "deploy:production": "node scripts/production-deploy-guard.mjs --deploy"
   },
   "dependencies": {
+    "@react-three/fiber": "^9.6.1",
     "@tailwindcss/postcss": "^4.3.0",
     "@vercel/analytics": "^2.0.1",
     "motion": "^12.40.0",
@@ -18,12 +20,14 @@
     "postcss": "^8.5.15",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "tailwindcss": "^4.3.0"
+    "tailwindcss": "^4.3.0",
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@types/node": "22.15.21",
     "@types/react": "19.1.5",
     "@types/react-dom": "19.1.5",
+    "@types/three": "^0.185.1",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.9",
     "typescript": "5.8.3",
