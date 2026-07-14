@@ -2,6 +2,8 @@ import type { Trigram } from "@/domain/iching/hexagrams";
 
 export type BinaryLine = "yin" | "yang";
 
+export type HexagramPhase = "selecting" | "stacked" | "field";
+
 export type GenerationStage = {
   id: "taikyoku" | "liangyi" | "sixiang" | "bagua" | "hexagrams";
   term: string;
