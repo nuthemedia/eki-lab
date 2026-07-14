@@ -27,3 +27,9 @@
 ## スタック
 
 Next 16 / React 19 / TypeScript / Tailwind v4 / motion。音は手続き的 Web Audio(アセットなし)。
+
+## 本番公開
+
+- Production公開は、cleanな作業ツリーで`HEAD`が最新の`origin/main`と一致するときだけ行う。
+- `vercel --prod`を直接実行せず、必ず`npm run deploy:production`を使う。
+- 古いブランチや別worktreeをVercelの`eki-lab`プロジェクトへリンクしない。

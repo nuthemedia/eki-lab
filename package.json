@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test:iching": "vitest run domain/iching/relations.test.ts"
+    "test:iching": "vitest run domain/iching/relations.test.ts",
+    "deploy:production": "node scripts/production-deploy-guard.mjs && npx --yes vercel@56.1.0 deploy --prod --yes"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.0",
