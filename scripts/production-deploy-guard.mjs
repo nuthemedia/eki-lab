@@ -17,9 +17,10 @@ async function verifyVercelBuild() {
     return;
   }
 
-  const deploymentSha = process.env.VERCEL_GIT_COMMIT_SHA;
+  const deploymentSha =
+    process.env.AWAI_DEPLOY_COMMIT_SHA || process.env.VERCEL_GIT_COMMIT_SHA;
   if (!deploymentSha) {
-    fail("Production build has no VERCEL_GIT_COMMIT_SHA.");
+    fail("Production build has no verified commit SHA.");
   }
 
   let response;
@@ -65,10 +66,27 @@ function verifyLocalCheckout() {
   }
 
   console.log(`[production-deploy-guard] Local checkout verified at ${mainSha}.`);
+  return mainSha;
 }
 
 if (process.env.VERCEL === "1") {
   await verifyVercelBuild();
 } else {
-  verifyLocalCheckout();
+  const mainSha = verifyLocalCheckout();
+
+  if (process.argv.includes("--deploy")) {
+    execFileSync(
+      "npx",
+      [
+        "--yes",
+        "vercel@56.1.0",
+        "deploy",
+        "--prod",
+        "--yes",
+        "--build-env",
+        `AWAI_DEPLOY_COMMIT_SHA=${mainSha}`,
+      ],
+      { stdio: "inherit" },
+    );
+  }
 }
