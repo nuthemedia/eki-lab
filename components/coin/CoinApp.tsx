@@ -109,78 +109,6 @@ function ReadingPair({ casts }: { casts: CoinCast[] }) {
   </div>;
 }
 
-type ShareDialogProps = {
-  open: boolean;
-  primaryName: string;
-  relatingName: string | null;
-  keywords: string[];
-  question: string;
-  showQuestion: boolean;
-  busy: boolean;
-  error: string | null;
-  onShowQuestionChange: (value: boolean) => void;
-  onShare: () => void;
-  onClose: () => void;
-};
-
-function CoinShareDialog({
-  open, primaryName, relatingName, keywords, question, showQuestion, busy, error,
-  onShowQuestionChange, onShare, onClose,
-}: ShareDialogProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const returnFocusRef = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    if (open && !dialog.open) {
-      returnFocusRef.current = document.activeElement as HTMLElement | null;
-      const previousOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      dialog.showModal();
-      return () => { document.body.style.overflow = previousOverflow; };
-    }
-
-    if (!open && dialog.open) dialog.close();
-  }, [open]);
-
-  const closeDialog = () => dialogRef.current?.close();
-
-  return (
-    <dialog
-      ref={dialogRef}
-      className="coin-share-dialog"
-      aria-labelledby="coin-share-title"
-      aria-describedby="coin-share-privacy"
-      onCancel={(event) => { event.preventDefault(); closeDialog(); }}
-      onKeyDown={(event) => { if (event.key === "Escape") { event.preventDefault(); closeDialog(); } }}
-      onClose={() => { onClose(); returnFocusRef.current?.focus(); }}
-      onClick={(event) => { if (event.target === event.currentTarget) closeDialog(); }}
-    >
-      <div className="coin-sheet">
-        <button type="button" className="coin-sheet-close" onClick={closeDialog}>閉じる</button>
-        <h2 id="coin-share-title">結果をシェア</h2>
-        <div className="coin-share-preview">
-          <b>コイン易占い</b>
-          <span>{primaryName} → {relatingName ?? "変爻なし"}</span>
-          <small>{keywords.join("・")}</small>
-          {showQuestion && <p>{question}</p>}
-        </div>
-        <label className="coin-check">
-          <input type="checkbox" checked={showQuestion} onChange={(event) => onShowQuestionChange(event.target.checked)} />
-          問いを表示する
-        </label>
-        <p id="coin-share-privacy" className="coin-privacy">オフの場合、問いは画像に含まれません。</p>
-        {error && <p className="coin-error" role="alert">{error}</p>}
-        <button type="button" className="coin-primary" onClick={onShare} disabled={busy} aria-busy={busy}>
-          {busy ? "画像を作っています…" : "画像を共有・保存"}
-        </button>
-      </div>
-    </dialog>
-  );
-}
-
 export default function CoinApp() {
   const reduced = useReducedMotion() ?? false;
   const [phase, setPhase] = useState<Phase>("question");
@@ -197,10 +125,6 @@ export default function CoinApp() {
   const [aiBusy, setAiBusy] = useState(false);
   const [aiStage, setAiStage] = useState(0);
   const [aiError, setAiError] = useState<string | null>(null);
-  const [shareOpen, setShareOpen] = useState(false);
-  const [shareQuestion, setShareQuestion] = useState(false);
-  const [shareBusy, setShareBusy] = useState(false);
-  const [shareError, setShareError] = useState<string | null>(null);
   const [resumeSession, setResumeSession] = useState<CoinSessionV1 | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const screenTitleRef = useRef<HTMLHeadingElement>(null);
@@ -272,7 +196,7 @@ export default function CoinApp() {
   const restartCast = () => {
     cancelRoll(); clearStoredSession(); setResumeSession(null); setCasts([]); setCoins(["heads", "heads", "heads"]); setAi(null); setAiSource(null); setAnnouncement("途中の起卦を破棄しました。");
   };
-  const reset = () => { cancelRoll(); clearStoredSession(); setResumeSession(null); setQuestion(""); setCasts([]); setAi(null); setAiSource(null); setAiError(null); setShareOpen(false); setShareError(null); setAnnouncement(""); setPhase("question"); };
+  const reset = () => { cancelRoll(); clearStoredSession(); setResumeSession(null); setQuestion(""); setCasts([]); setAi(null); setAiSource(null); setAiError(null); setAnnouncement(""); setPhase("question"); };
 
   const place = (cast: CoinCast) => {
     const next = [...casts, cast]; setCasts(next); playLinePlace();
@@ -314,17 +238,6 @@ export default function CoinApp() {
     finally { setAiBusy(false); }
   };
 
-  const share = async () => {
-    if (!reading || !primary || shareBusy) return; setShareBusy(true); setShareError(null);
-    try {
-      const response = await fetch("/api/iching/coin-share", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: shareQuestion ? question : "", primaryNumber: primary.number, changingLineIndexes: reading.changingLineIndexes, relatingNumber: relating?.number ?? null }) });
-      if (!response.ok) throw new Error(); const blob = await response.blob(); const file = new File([blob], "coin-iching.png", { type: "image/png" });
-      if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title: "コイン易占い" });
-      else { const url = URL.createObjectURL(blob); const anchor = document.createElement("a"); anchor.href = url; anchor.download = file.name; anchor.click(); URL.revokeObjectURL(url); }
-    } catch (error) { if (!(error instanceof DOMException && error.name === "AbortError")) setShareError("シェア画像を用意できませんでした。時間をおいてお試しください。"); }
-    finally { setShareBusy(false); }
-  };
-
   return <main className="coin-app">
     {phase === "question" && <IconButton muted={muted} onClick={toggleMute} />}
     <div className="coin-sr-only" aria-live="polite" aria-atomic="true">{announcement}</div>
@@ -353,7 +266,7 @@ export default function CoinApp() {
         {phase === "result" ? <>
           <div className="coin-inquiry"><small>あなたの問い</small><p>{question}</p><span>{category}</span></div>
           <div className="coin-glass coin-result-card"><ReadingPair casts={casts} /><div className="coin-change-label">{reading.changingLineIndexes.length === 0 ? "変爻なし" : reading.changingLineIndexes.length === 6 ? "六爻すべてが変化" : reading.changingLineIndexes.length >= 3 ? `変爻${reading.changingLineIndexes.length}本（${reading.changingLineIndexes.map(i => LINE_LABELS[i]).join("・")}）` : `変爻　${reading.changingLineIndexes.map(i => LINE_LABELS[i]).join("・")}`}</div><div className="coin-keywords">{dictionary.keywords.map((word, i) => <motion.span key={word} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .1 * i }}>{word}</motion.span>)}</div><p className="coin-essence">{dictionary.essence}</p><blockquote>{text.judgment.original}<cite>— 『易経』第{primary.number}卦</cite></blockquote></div>
-          <div className="coin-actions"><button className="coin-primary" onClick={() => setPhase("detail")}>卦から読む <span>→</span></button><div className="coin-ai-action"><button className="coin-secondary" onClick={askAi} disabled={aiBusy} aria-busy={aiBusy}>{aiBusy ? "読み合わせています…" : "AIと読む"}</button><button className="coin-secondary" onClick={() => { setShareError(null); setShareOpen(true); }}>結果をシェア</button></div><p className="coin-ai-privacy">押したときだけ、問いと卦の結果をAIへ送ります。</p></div>
+          <div className="coin-actions"><button className="coin-primary" onClick={() => setPhase("detail")}>卦から読む <span>→</span></button><div className="coin-ai-action"><button className="coin-secondary" onClick={askAi} disabled={aiBusy} aria-busy={aiBusy}>{aiBusy ? "読み合わせています…" : "AIと読む"}</button></div><p className="coin-ai-privacy">押したときだけ、問いと卦の結果をAIへ送ります。</p></div>
         </> : <div className="coin-detail-body"><div className="coin-detail-summary">本卦 第{primary.number}卦 {primary.name}{reading.changingLineIndexes.length ? `　—　変爻 ${reading.changingLineIndexes.map(i => LINE_LABELS[i]).join("・")}　—　之卦 ${relating?.name}` : "　—　変爻なし"}</div><nav className="coin-detail-nav" aria-label="詳細の目次"><a href="#coin-judgment">卦辞</a>{reading.changingLineIndexes.length > 0 && <a href="#coin-changing">変爻</a>}{relating && <a href="#coin-relating">之卦</a>}<a href="#coin-hints">卦から読む</a></nav><p className="coin-reading-source">64卦辞典をもとにした読みです。</p><section><h2>卦の概要</h2><p>{dictionary.trigramSymbolism}</p><p>{dictionary.classical}</p></section><section id="coin-judgment"><h2>卦辞</h2><p>{text.judgment.original}</p><h3>卦辞の現代語訳</h3><p>{text.judgment.modern}</p></section><div id="coin-changing">{reading.changingLineIndexes.map(index => <section key={index}><h2>変爻の爻辞（{LINE_LABELS[index]}）</h2><p>{text.lines[index].original}</p><h3>爻辞の現代語訳</h3><p>{text.lines[index].modern}</p></section>)}</div>{relating && <section id="coin-relating"><h2>之卦の意味</h2><p>{HEXAGRAM_DICTIONARY[relating.number].modern}</p></section>}<section><h2>キーワード</h2><div className="coin-keywords">{dictionary.keywords.map(word => <span key={word}>{word}</span>)}</div></section><section id="coin-hints"><h2>卦から読む</h2><p>{dictionary.modern}</p><h3>{category}の視点</h3><p>{categoryGuidance}</p><h3>自分に問い返す</h3><ul>{reflectionPrompts.map(prompt => <li key={prompt}>{prompt}</li>)}</ul></section><section><h2>注意点</h2><p>易は未来を固定するものではなく、今の状況を見るための手がかりです。大きな決断は、現実の情報や信頼できる人への相談も合わせて考えてください。</p></section><div className="coin-ai-callout"><p>押したときだけ、問いと卦の結果をAIへ送ります。</p><button className="coin-secondary" onClick={askAi} disabled={aiBusy} aria-busy={aiBusy}>{aiBusy ? "読み合わせています…" : "AIと読む"}</button></div></div>}
         {aiError && <p className="coin-error">{aiError}</p>}
         {aiBusy && <div className="coin-ai-loading coin-glass" role="status" aria-live="polite" aria-busy="true"><div className="coin-ai-orbit" aria-hidden><i /><i /><i /></div><p>{AI_LOADING_STEPS[aiStage]}</p><small>問いと卦を重ねて、短い言葉に整えています。</small></div>}
@@ -361,7 +274,6 @@ export default function CoinApp() {
         <div className="coin-end-actions coin-glass"><button className="coin-secondary coin-restart-button" onClick={reset}>もう一度占う</button></div>
       </motion.section>}
     </AnimatePresence>
-    {primary && dictionary && <CoinShareDialog open={shareOpen} primaryName={primary.name} relatingName={relating?.name ?? null} keywords={dictionary.keywords} question={question} showQuestion={shareQuestion} busy={shareBusy} error={shareError} onShowQuestionChange={setShareQuestion} onShare={share} onClose={() => setShareOpen(false)} />}
     {phase === "question" && <section className="coin-home-support" aria-labelledby="coin-kofi-title"><div className="coin-kofi-divider" aria-hidden="true" /><aside className="coin-kofi-card"><h2 id="coin-kofi-title">易アプリの開発を応援する</h2><a href="https://ko-fi.com/awaicommons" target="_blank" rel="noopener noreferrer" className="coin-kofi-link">Ko-fiで応援する</a></aside></section>}
   </main>;
 }
