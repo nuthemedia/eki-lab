@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, type ReactNode } from "react";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import type { MotionValue } from "motion/react";
 import * as THREE from "three";
@@ -12,6 +12,7 @@ import {
   type HexagramPhase,
 } from "@/data/taikyoku/generation";
 import InteractiveHexagramField from "./InteractiveHexagramField";
+import InteractiveStageGroup from "./InteractiveStageGroup";
 import LineForms from "./LineForms";
 import StaticScene from "./StaticScene";
 
@@ -60,11 +61,13 @@ function applySphereUniforms(
   pulse: number,
   stage: number,
   time: number,
+  progress: number,
 ) {
   material.uniforms.uBias.value = bias;
   material.uniforms.uPulse.value = pulse;
   material.uniforms.uStage.value = stage;
   material.uniforms.uTime.value = time;
+  material.uniforms.uProgress.value = progress;
 }
 
 const VERTEX_SHADER = `
@@ -86,6 +89,7 @@ const FRAGMENT_SHADER = `
   uniform float uPulse;
   uniform float uStage;
   uniform float uTime;
+  uniform float uProgress;
   varying vec3 vNormal;
   varying vec3 vPosition;
   varying vec3 vView;
@@ -99,18 +103,25 @@ const FRAGMENT_SHADER = `
   void main() {
     float facing = abs(dot(normalize(vNormal), normalize(vView)));
     float rim = pow(1.0 - facing, 2.25);
-    float flow = sin(vPosition.y * 3.2 + vPosition.x * 2.4 + uBias * 2.2 + uTime * 0.34);
-    flow += sin(vPosition.z * 3.8 - vPosition.y * 1.7 - uTime * 0.24) * 0.48;
-    float dual = smoothstep(-0.08, 0.08, flow);
+    vec2 p = vPosition.xy;
+    float boundary = 0.43 * sin(p.y * 3.14159) + uBias * 0.48;
+    float side = smoothstep(-0.035, 0.035, p.x - boundary);
+    float upperDot = 1.0 - smoothstep(0.13, 0.19, distance(p, vec2(-0.02 + uBias * 0.18, 0.48)));
+    float lowerDot = 1.0 - smoothstep(0.13, 0.19, distance(p, vec2(0.02 + uBias * 0.18, -0.48)));
+    float taijitu = clamp(side + upperDot - lowerDot, 0.0, 1.0);
+    float flow = p.x - boundary;
     float grain = hash(floor(vPosition * 42.0));
     vec3 ink = vec3(0.025, 0.028, 0.03);
     vec3 gold = vec3(0.84, 0.72, 0.48);
+    vec3 pearl = vec3(0.72, 0.69, 0.61);
     float currentA = exp(-abs(flow) * 5.2);
-    float currentB = exp(-abs(flow + 0.72) * 7.0);
-    vec3 inside = ink + gold * (currentA * 0.54 + currentB * 0.22) * uStage;
+    float dualityMix = smoothstep(0.10, 0.28, uProgress) * (1.0 - smoothstep(0.33, 0.42, uProgress));
+    vec3 dualColor = mix(ink, pearl, taijitu) + gold * currentA * 0.22;
+    vec3 inside = mix(ink, dualColor, max(uStage, dualityMix));
     float pulseRing = 1.0 - smoothstep(0.03, 0.16, abs(length(vPosition.xy) - (1.0 - uPulse)));
     vec3 color = inside + gold * (rim * 1.15 + pulseRing * uPulse * 0.65 + grain * 0.025);
-    float alpha = 0.2 + rim * 0.72 + (currentA + currentB) * uStage * 0.18 + pulseRing * uPulse * 0.18;
+    float fade = 1.0 - smoothstep(0.33, 0.43, uProgress);
+    float alpha = (0.24 + rim * 0.72 + currentA * uStage * 0.18 + pulseRing * uPulse * 0.18) * fade;
     gl_FragColor = vec4(color, clamp(alpha, 0.0, 0.92));
   }
 `;
@@ -205,6 +216,7 @@ function Dust() {
 }
 
 function TaikyokuSphere({
+  progress,
   activeStage,
   pulseKey,
   dualityBias,
@@ -212,7 +224,7 @@ function TaikyokuSphere({
   onDualityBias,
 }: Pick<
   TaikyokuCanvasProps,
-  "activeStage" | "pulseKey" | "dualityBias" | "onPulse" | "onDualityBias"
+  "progress" | "activeStage" | "pulseKey" | "dualityBias" | "onPulse" | "onDualityBias"
 >) {
   const meshRef = useRef<THREE.Mesh>(null);
   const dragStart = useRef<number | null>(null);
@@ -235,6 +247,7 @@ function TaikyokuSphere({
           uPulse: { value: 0 },
           uStage: { value: 0 },
           uTime: { value: 0 },
+          uProgress: { value: 0 },
         },
       }),
     [],
@@ -258,12 +271,24 @@ function TaikyokuSphere({
       activeStage === 1 ? 1 : 0,
       0.12,
     );
-    applySphereUniforms(material, displayBias.current, pulse.current, stage, elapsed.current);
+    applySphereUniforms(
+      material,
+      displayBias.current,
+      pulse.current,
+      stage,
+      elapsed.current,
+      progress.get(),
+    );
+    if (meshRef.current) {
+      meshRef.current.rotation.y += delta * 0.035;
+      const breath = 1 + Math.sin(elapsed.current * 0.72) * 0.018;
+      meshRef.current.scale.setScalar(breath);
+    }
     if (
       pulse.current > 0 ||
       Math.abs(displayBias.current - targetBias) > 0.002 ||
       Math.abs(stage - (activeStage === 1 ? 1 : 0)) > 0.002 ||
-      activeStage === 1
+      activeStage <= 1
     ) {
       invalidate();
     }
@@ -311,10 +336,10 @@ function TaikyokuSphere({
 function Branches() {
   const geometry = useMemo(() => {
     const points = [
-      0, 0, -9.7, -0.52, 0.64, -9.92,
-      0, 0, -9.7, 0.52, 0.64, -10.08,
-      0, 0, -9.7, -0.52, -0.64, -10.08,
-      0, 0, -9.7, 0.52, -0.64, -9.92,
+      0, 0, 0.3, -0.52, 0.64, 0.08,
+      0, 0, 0.3, 0.52, 0.64, -0.08,
+      0, 0, 0.3, -0.52, -0.64, -0.08,
+      0, 0, 0.3, 0.52, -0.64, 0.08,
     ];
     const value = new THREE.BufferGeometry();
     value.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
@@ -330,30 +355,64 @@ function Branches() {
 }
 
 const FOUR_POSITIONS: readonly Vec3[] = [
-  [-0.52, 0.64, -9.92],
-  [0.52, 0.64, -10.08],
-  [-0.52, -0.64, -10.08],
-  [0.52, -0.64, -9.92],
+  [-0.52, 0.64, 0.08],
+  [0.52, 0.64, -0.08],
+  [-0.52, -0.64, -0.08],
+  [0.52, -0.64, 0.08],
 ] as const;
 
 const RING_POSITIONS: readonly Vec3[] = Array.from({ length: 8 }, (_, index) => {
   const angle = Math.PI / 2 - (index / 8) * Math.PI * 2;
-  return [Math.cos(angle) * 0.85, Math.sin(angle) * 0.9 - 0.25, -18] as Vec3;
+  return [Math.cos(angle) * 0.85, Math.sin(angle) * 0.9 - 0.25, 0] as Vec3;
 });
 
+function ProgressReveal({
+  progress,
+  range,
+  children,
+}: {
+  progress: MotionValue<number>;
+  range: readonly [number, number, number, number];
+  children: ReactNode;
+}) {
+  const ref = useRef<THREE.Group>(null);
+  const { invalidate } = useThree();
+  useEffect(() => progress.on("change", invalidate), [invalidate, progress]);
+  useFrame(() => {
+    if (!ref.current) return;
+    const p = progress.get();
+    const enter = THREE.MathUtils.smoothstep(p, range[0], range[1]);
+    const exit = 1 - THREE.MathUtils.smoothstep(p, range[2], range[3]);
+    const amount = Math.max(0.001, enter * exit);
+    ref.current.visible = amount > 0.002;
+    ref.current.scale.setScalar(amount);
+  });
+  return <group ref={ref}>{children}</group>;
+}
+
 function FourSymbols({
+  progress,
+  reducedMotion,
   activeStage,
   selectedFour,
   onSelect,
 }: {
   activeStage: number;
+  progress: MotionValue<number>;
+  reducedMotion: boolean;
   selectedFour: number;
   onSelect: (index: number) => void;
 }) {
   const forms = binaryForms(2);
 
   return (
-    <group>
+    <ProgressReveal progress={progress} range={[0.28, 0.42, 0.57, 0.66]}>
+    <InteractiveStageGroup
+      position={[0, 0, -10]}
+      enabled={activeStage === 2}
+      reducedMotion={reducedMotion}
+      hitSize={[3.1, 3.1]}
+    >
       <Branches />
       {forms.map((form, index) => {
         const position = FOUR_POSITIONS[index];
@@ -374,7 +433,7 @@ function FourSymbols({
             <mesh
               position={displayPosition}
               onClick={(event) => {
-                if (activeStage !== 2) return;
+                if (activeStage !== 2 || event.delta > 5) return;
                 event.stopPropagation();
                 onSelect(index);
               }}
@@ -385,21 +444,33 @@ function FourSymbols({
           </group>
         );
       })}
-    </group>
+    </InteractiveStageGroup>
+    </ProgressReveal>
   );
 }
 
 function TrigramRing({
+  progress,
+  reducedMotion,
   activeStage,
   selectedTrigram,
   onSelect,
 }: {
   activeStage: number;
+  progress: MotionValue<number>;
+  reducedMotion: boolean;
   selectedTrigram: number;
   onSelect: (index: number) => void;
 }) {
   return (
-    <group>
+    <ProgressReveal progress={progress} range={[0.52, 0.66, 0.81, 0.88]}>
+    <InteractiveStageGroup
+      position={[0, 0, -18]}
+      enabled={activeStage === 3}
+      reducedMotion={reducedMotion}
+      hitSize={[3.2, 3.4]}
+      targetRotationZ={selectedTrigram * Math.PI / 4}
+    >
       {RING_POSITIONS.map((position, index) => {
         const selected = selectedTrigram === index;
         const displayPosition: Vec3 = [
@@ -418,7 +489,7 @@ function TrigramRing({
             <mesh
               position={displayPosition}
               onClick={(event) => {
-                if (activeStage !== 3) return;
+                if (activeStage !== 3 || event.delta > 5) return;
                 event.stopPropagation();
                 onSelect(index);
               }}
@@ -429,7 +500,8 @@ function TrigramRing({
           </group>
         );
       })}
-    </group>
+    </InteractiveStageGroup>
+    </ProgressReveal>
   );
 }
 
@@ -447,19 +519,61 @@ function StackingHexagram({
   | "hexagramPhase"
   | "onRevealHexagramField"
 >) {
+  const lowerRef = useRef<THREE.Group>(null);
+  const upperRef = useRef<THREE.Group>(null);
+  const particlesRef = useRef<THREE.Points>(null);
+  const burst = useRef(hexagramPhase === "stacked" ? 1 : 0);
+  const previousPhase = useRef(hexagramPhase);
+  const { invalidate } = useThree();
   const lower = TRIGRAMS[lowerTrigram].lines as BinaryLine[];
   const upper = TRIGRAMS[upperTrigram].lines as BinaryLine[];
   const stacked = hexagramPhase === "stacked";
-  const forms = stacked ? [[...lower, ...upper]] : [lower, upper];
-  const positions: Vec3[] = stacked
-    ? [[0, 0, -27]]
-    : [[0, -0.92, -27], [0, 0.92, -27]];
+  const particleGeometry = useMemo(() => {
+    const values = new Float32Array(72 * 3);
+    for (let i = 0; i < 72; i += 1) {
+      const angle = i * 2.39996;
+      const radius = 0.12 + ((i * 37) % 71) / 71;
+      values[i * 3] = Math.cos(angle) * radius;
+      values[i * 3 + 1] = Math.sin(angle) * radius * 1.35;
+      values[i * 3 + 2] = ((i % 9) - 4) * 0.025;
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(values, 3));
+    return geometry;
+  }, []);
+
+  useEffect(() => () => particleGeometry.dispose(), [particleGeometry]);
+  useFrame((_, delta) => {
+    if (previousPhase.current !== hexagramPhase) {
+      if (hexagramPhase === "stacked") burst.current = 1;
+      previousPhase.current = hexagramPhase;
+    }
+    const lowerY = stacked ? -0.06 : -0.42;
+    const upperY = stacked ? 0.42 : 0.52;
+    if (lowerRef.current) lowerRef.current.position.y = THREE.MathUtils.lerp(lowerRef.current.position.y, lowerY, 0.13);
+    if (upperRef.current) upperRef.current.position.y = THREE.MathUtils.lerp(upperRef.current.position.y, upperY, 0.13);
+    burst.current = Math.max(0, burst.current - delta * 0.72);
+    if (particlesRef.current) {
+      (particlesRef.current.material as THREE.PointsMaterial).opacity = Math.sin(burst.current * Math.PI) * 0.75;
+      particlesRef.current.scale.setScalar(1 + (1 - burst.current) * 1.9);
+      particlesRef.current.rotation.z += delta * 0.34;
+    }
+    if (burst.current > 0.001 || (lowerRef.current && Math.abs(lowerRef.current.position.y - lowerY) > 0.002)) invalidate();
+  });
 
   return (
-    <group>
-      <LineForms forms={forms} positions={positions} scale={0.55} color="#ead39a" />
+    <group position={[0, 0, -27]}>
+      <group ref={lowerRef} position={[0, -0.42, 0]}>
+        <LineForms forms={[lower]} positions={[[0, 0, 0]]} scale={0.55} color="#ead39a" />
+      </group>
+      <group ref={upperRef} position={[0, 0.52, 0]}>
+        <LineForms forms={[upper]} positions={[[0, 0, 0]]} scale={0.55} color="#ead39a" />
+      </group>
+      <points ref={particlesRef} geometry={particleGeometry}>
+        <pointsMaterial color="#e8cf91" size={0.035} transparent opacity={0} depthWrite={false} toneMapped={false} />
+      </points>
       <mesh
-        position={[0, 0, -26.92]}
+        position={[0, 0, 0.08]}
         onClick={(event) => {
           if (activeStage !== 4 || !stacked) return;
           event.stopPropagation();
@@ -486,26 +600,27 @@ function Scene(props: TaikyokuCanvasProps) {
       <ContextGuard onFailure={props.onWebGLFailure} />
       <Dust />
       <TaikyokuSphere
+        progress={props.progress}
         activeStage={props.activeStage}
         pulseKey={props.pulseKey}
         dualityBias={props.dualityBias}
         onPulse={props.onPulse}
         onDualityBias={props.onDualityBias}
       />
-      {props.activeStage === 2 ? (
-        <FourSymbols
-          activeStage={props.activeStage}
-          selectedFour={props.selectedFour}
-          onSelect={props.onSelectFour}
-        />
-      ) : null}
-      {props.activeStage === 3 ? (
-        <TrigramRing
-          activeStage={props.activeStage}
-          selectedTrigram={props.selectedTrigram}
-          onSelect={props.onSelectTrigram}
-        />
-      ) : null}
+      <FourSymbols
+        progress={props.progress}
+        reducedMotion={props.reducedMotion}
+        activeStage={props.activeStage}
+        selectedFour={props.selectedFour}
+        onSelect={props.onSelectFour}
+      />
+      <TrigramRing
+        progress={props.progress}
+        reducedMotion={props.reducedMotion}
+        activeStage={props.activeStage}
+        selectedTrigram={props.selectedTrigram}
+        onSelect={props.onSelectTrigram}
+      />
       {props.activeStage === 4 ? (
         props.hexagramPhase === "field" ? (
           <InteractiveHexagramField

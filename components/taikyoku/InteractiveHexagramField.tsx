@@ -1,9 +1,16 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { TRIGRAMS } from "@/domain/iching/hexagrams";
+import {
+  FIRST_HIGHLIGHT_DELAY_MS,
+  HIGHLIGHT_DURATION_SECONDS,
+  HIGHLIGHT_INTERVAL_MS,
+  pickAmbientHighlight,
+  REDUCED_HIGHLIGHT_INTERVAL_MS,
+} from "@/data/taikyoku/ambientHighlight";
 import { hexagramField } from "@/data/taikyoku/generation";
 import type { Vec3 } from "@/data/taikyoku/camera";
 import LineForms from "./LineForms";
@@ -26,13 +33,34 @@ export default function InteractiveHexagramField({
   const revealRef = useRef<THREE.Group>(null);
   const tiltRef = useRef<THREE.Group>(null);
   const hitRef = useRef<THREE.InstancedMesh>(null);
+  const particleRef = useRef<THREE.Points>(null);
+  const ambientHighlightRef = useRef<THREE.Group>(null);
+  const ambientPulseTime = useRef(HIGHLIGHT_DURATION_SECONDS);
   const dragStart = useRef<{ x: number; y: number } | null>(null);
   const dragOrigin = useRef({ x: 0, y: 0 });
   const rotationTarget = useRef({ x: 0, y: 0 });
   const rotationVelocity = useRef({ x: 0, y: 0 });
+  const depthTarget = useRef(0);
+  const interactionEnergy = useRef(0);
   const moved = useRef(false);
   const revealScale = useRef(reducedMotion ? 1 : 0.08);
+  const [ambientHighlightIndex, setAmbientHighlightIndex] = useState<number | null>(null);
   const { invalidate } = useThree();
+
+  const particleGeometry = useMemo(() => {
+    const count = reducedMotion ? 24 : 96;
+    const values = new Float32Array(count * 3);
+    for (let index = 0; index < count; index += 1) {
+      const column = index % 12;
+      const row = Math.floor(index / 12);
+      values[index * 3] = (column - 5.5) * 0.34 + Math.sin(index * 3.17) * 0.08;
+      values[index * 3 + 1] = (row - 3.5) * 0.58 + Math.cos(index * 1.91) * 0.1;
+      values[index * 3 + 2] = ((index * 29) % 17) * 0.035 - 0.25;
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(values, 3));
+    return geometry;
+  }, [reducedMotion]);
 
   const forms = useMemo(() => hexagramField(TRIGRAMS), []);
   const positions = useMemo<Vec3[]>(
@@ -45,6 +73,9 @@ export default function InteractiveHexagramField({
     [forms],
   );
 
+  const activeAmbientIndex = ambientHighlightIndex === selectedIndex
+    ? null
+    : ambientHighlightIndex;
   const visibleForms = useMemo(
     () => forms.filter((_, index) => index !== selectedIndex),
     [forms, selectedIndex],
@@ -66,8 +97,28 @@ export default function InteractiveHexagramField({
   }, [positions]);
 
   useEffect(() => invalidate(), [invalidate, selectedIndex]);
+  useEffect(() => () => particleGeometry.dispose(), [particleGeometry]);
 
-  useFrame(() => {
+  useEffect(() => {
+    const selectNext = () => {
+      setAmbientHighlightIndex((previousIndex) => (
+        pickAmbientHighlight(previousIndex, selectedIndex)
+      ));
+      ambientPulseTime.current = 0;
+      invalidate();
+    };
+    const firstHighlight = window.setTimeout(selectNext, FIRST_HIGHLIGHT_DELAY_MS);
+    const interval = window.setInterval(
+      selectNext,
+      reducedMotion ? REDUCED_HIGHLIGHT_INTERVAL_MS : HIGHLIGHT_INTERVAL_MS,
+    );
+    return () => {
+      window.clearTimeout(firstHighlight);
+      window.clearInterval(interval);
+    };
+  }, [invalidate, reducedMotion, selectedIndex]);
+
+  useFrame((_, delta) => {
     const reveal = revealRef.current;
     const tilt = tiltRef.current;
     if (!reveal || !tilt) return;
@@ -87,13 +138,13 @@ export default function InteractiveHexagramField({
       } else {
         rotationTarget.current.x = THREE.MathUtils.clamp(
           (rotationTarget.current.x + rotationVelocity.current.x) * 0.93,
-          -0.18,
-          0.18,
+          -0.32,
+          0.32,
         );
         rotationTarget.current.y = THREE.MathUtils.clamp(
           (rotationTarget.current.y + rotationVelocity.current.y) * 0.93,
-          -0.28,
-          0.28,
+          -0.52,
+          0.52,
         );
         rotationVelocity.current.x *= 0.86;
         rotationVelocity.current.y *= 0.86;
@@ -110,11 +161,42 @@ export default function InteractiveHexagramField({
       rotationTarget.current.y,
       reducedMotion ? 0.32 : 0.14,
     );
+    depthTarget.current *= dragStart.current ? 0.995 : 0.94;
+    tilt.position.z = THREE.MathUtils.lerp(tilt.position.z, depthTarget.current, 0.12);
+    interactionEnergy.current *= reducedMotion ? 0.72 : 0.935;
+    if (particleRef.current) {
+      const material = particleRef.current.material as THREE.PointsMaterial;
+      material.opacity = 0.08 + Math.min(0.7, interactionEnergy.current * 2.8);
+      material.size = 0.014 + Math.min(0.045, interactionEnergy.current * 0.15);
+      particleRef.current.rotation.z += interactionEnergy.current * 0.008;
+      particleRef.current.position.z = -0.12 + interactionEnergy.current * 0.55;
+    }
+
+    const ambientHighlight = ambientHighlightRef.current;
+    if (ambientHighlight && activeAmbientIndex !== null) {
+      ambientPulseTime.current = Math.min(
+        HIGHLIGHT_DURATION_SECONDS,
+        ambientPulseTime.current + delta,
+      );
+      const phase = ambientPulseTime.current / HIGHLIGHT_DURATION_SECONDS;
+      const pulse = Math.sin(phase * Math.PI);
+      const opacity = pulse * (reducedMotion ? 0.48 : 0.92);
+      ambientHighlight.position.z = 0.2 + pulse * (reducedMotion ? 0.02 : 0.16);
+      ambientHighlight.scale.setScalar(1 + pulse * (reducedMotion ? 0 : 0.08));
+      ambientHighlight.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          const material = child.material as THREE.MeshBasicMaterial;
+          material.opacity = opacity;
+        }
+      });
+    }
 
     if (
       Math.abs(1 - nextReveal) > 0.002 ||
       Math.abs(tilt.rotation.x) > 0.002 ||
       Math.abs(tilt.rotation.y) > 0.002 ||
+      interactionEnergy.current > 0.006 ||
+      ambientPulseTime.current < HIGHLIGHT_DURATION_SECONDS ||
       dragStart.current
     ) {
       invalidate();
@@ -145,20 +227,29 @@ export default function InteractiveHexagramField({
     const dy = event.nativeEvent.clientY - start.y;
     if (Math.abs(dx) + Math.abs(dy) > 5) moved.current = true;
 
-    const maxX = reducedMotion ? 0.06 : 0.18;
-    const maxY = reducedMotion ? 0.08 : 0.28;
+    const maxX = reducedMotion ? 0.06 : 0.32;
+    const maxY = reducedMotion ? 0.08 : 0.52;
     const nextX = THREE.MathUtils.clamp(
-      dragOrigin.current.x - dy / window.innerHeight,
+      dragOrigin.current.x - dy / (window.innerHeight * 0.72),
       -maxX,
       maxX,
     );
     const nextY = THREE.MathUtils.clamp(
-      dragOrigin.current.y + dx / window.innerWidth,
+      dragOrigin.current.y + dx / (window.innerWidth * 0.64),
       -maxY,
       maxY,
     );
     rotationVelocity.current.x = (nextX - rotationTarget.current.x) * 0.42;
     rotationVelocity.current.y = (nextY - rotationTarget.current.y) * 0.42;
+    depthTarget.current = THREE.MathUtils.clamp(
+      (Math.abs(dx) + Math.abs(dy)) / 380,
+      0,
+      reducedMotion ? 0.08 : 0.72,
+    );
+    interactionEnergy.current = Math.min(
+      1,
+      interactionEnergy.current + Math.abs(rotationVelocity.current.x) + Math.abs(rotationVelocity.current.y),
+    );
     rotationTarget.current.x = nextX;
     rotationTarget.current.y = nextY;
     invalidate();
@@ -182,10 +273,23 @@ export default function InteractiveHexagramField({
 
   const selectedPosition = selectedIndex === null ? null : positions[selectedIndex];
   const selectedForm = selectedIndex === null ? null : forms[selectedIndex];
+  const ambientPosition = activeAmbientIndex === null ? null : positions[activeAmbientIndex];
+  const ambientForm = activeAmbientIndex === null ? null : forms[activeAmbientIndex];
 
   return (
     <group ref={revealRef} position={FIELD_POSITION}>
       <group ref={tiltRef}>
+        <points ref={particleRef} geometry={particleGeometry}>
+          <pointsMaterial
+            color="#d9bd7d"
+            size={0.018}
+            sizeAttenuation
+            transparent
+            opacity={0.08}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        </points>
         <LineForms
           forms={visibleForms}
           positions={visiblePositions}
@@ -193,6 +297,21 @@ export default function InteractiveHexagramField({
           color="#c6ae72"
           opacity={0.72}
         />
+        {ambientForm && ambientPosition ? (
+          <group
+            key={activeAmbientIndex ?? "ambient"}
+            ref={ambientHighlightRef}
+            position={[ambientPosition[0], ambientPosition[1], 0.2]}
+          >
+            <LineForms
+              forms={[ambientForm]}
+              positions={[SELECTED_POSITION]}
+              scale={PANEL_SCALE}
+              color="#ffe8ac"
+              opacity={0}
+            />
+          </group>
+        ) : null}
         {selectedForm && selectedPosition ? (
           <group position={[selectedPosition[0], selectedPosition[1], 0.42]}>
             <LineForms
@@ -222,7 +341,7 @@ export default function InteractiveHexagramField({
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
         >
-          <planeGeometry args={[4.1, 4.9]} />
+          <planeGeometry args={[4.8, 5.6]} />
           <meshBasicMaterial transparent opacity={0} depthWrite={false} />
         </mesh>
       </group>

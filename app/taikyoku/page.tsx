@@ -3,8 +3,8 @@ import TaikyokuApp from "@/components/taikyoku/TaikyokuApp";
 
 const title = "易有太極 — 1から64へ";
 const description =
-  "太極から両儀、四象、八卦、六十四卦へ。易の生成構造を、触れて学ぶインタラクティブな3D体験。";
-const url = "https://eki-lab.vercel.app/taikyoku";
+  "太極から両儀、四象、八卦、六十四卦へ。陰陽と爻が1→2→4→8→64へ展開する、易経の生成構造を触れて学ぶ3D体験。";
+const url = "https://awaicommons.com/taikyoku";
 
 export const metadata: Metadata = {
   title,
@@ -13,11 +13,12 @@ export const metadata: Metadata = {
   applicationName: "易有太極",
   keywords: ["易有太極", "太極", "陰陽", "四象", "八卦", "六十四卦", "易経"],
   category: "education",
+  robots: { index: true, follow: true },
   openGraph: {
     title,
     description,
     url,
-    siteName: "eki-lab",
+    siteName: "AWAI Commons",
     locale: "ja_JP",
     type: "website",
   },

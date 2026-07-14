@@ -1,10 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
   useMotionValueEvent,
+  useMotionValue,
   useReducedMotion,
   useScroll,
 } from "motion/react";
@@ -14,6 +21,13 @@ import {
   type HexagramPhase,
 } from "@/data/taikyoku/generation";
 import { stageIndexAt } from "@/data/taikyoku/camera";
+import {
+  AUTO_DURATION_MS,
+  isRestartSwipe,
+  sampleAutoTimeline,
+  type AutoPlaybackState,
+  type AutoStopReason,
+} from "@/data/taikyoku/experience";
 import StaticScene from "./StaticScene";
 import { useAmbientSound } from "./useAmbientSound";
 
@@ -58,6 +72,23 @@ export default function TaikyokuApp() {
   const rootRef = useRef<HTMLElement>(null);
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
   const continueTimerRef = useRef<number | null>(null);
+  const autoFrameRef = useRef<number | null>(null);
+  const autoStartedAtRef = useRef(0);
+  const autoElapsedRef = useRef(0);
+  const autoStateRef = useRef<AutoPlaybackState>("idle");
+  const autoStopReasonRef = useRef<AutoStopReason>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const dialogTriggerRef = useRef<HTMLButtonElement>(null);
+  const openingActionRef = useRef<HTMLButtonElement>(null);
+  const dialogReturnFocusOverrideRef = useRef<HTMLElement | null>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const restartSwipeArmedRef = useRef(false);
+  const restartSwipeStartRef = useRef<{
+    identifier: number;
+    x: number;
+    y: number;
+  } | null>(null);
+  const restartExperienceRef = useRef<() => void>(() => undefined);
   const reducedMotion = useReducedMotion() ?? false;
   const [activeStage, setActiveStage] = useState(0);
   const [pulseKey, setPulseKey] = useState(0);
@@ -69,23 +100,148 @@ export default function TaikyokuApp() {
   const [hexagramPhase, setHexagramPhase] = useState<HexagramPhase>("selecting");
   const [selectedHexagramPanel, setSelectedHexagramPanel] = useState<number | null>(null);
   const [webGLFailed, setWebGLFailed] = useState(false);
+  const [autoState, setAutoState] = useState<AutoPlaybackState>("idle");
+  const [closingOpen, setClosingOpen] = useState(false);
   const ambient = useAmbientSound(activeStage);
+  const activateAmbient = ambient.activate;
+  const enableAmbient = ambient.enable;
+  const suspendAmbient = ambient.suspend;
+  const resumeAmbient = ambient.resume;
   const fieldOpen = hexagramPhase === "field";
+  const yinPercentage = Math.round(50 - dualityBias * 30);
+  const yangPercentage = 100 - yinPercentage;
 
   const { scrollYProgress } = useScroll({
     target: rootRef,
     offset: ["start start", "end end"],
   });
+  const experienceProgress = useMotionValue(scrollYProgress.get());
 
   useMotionValueEvent(scrollYProgress, "change", (value) => {
+    if (autoStateRef.current === "playing") return;
+    experienceProgress.set(value);
     const next = stageIndexAt(value);
     setActiveStage((current) => (current === next ? current : next));
   });
+
+  const pauseAuto = useCallback((reason: Exclude<AutoStopReason, null>) => {
+    if (autoStateRef.current !== "playing") return;
+    autoElapsedRef.current = Math.min(
+      AUTO_DURATION_MS,
+      performance.now() - autoStartedAtRef.current,
+    );
+    if (autoFrameRef.current !== null) {
+      window.cancelAnimationFrame(autoFrameRef.current);
+      autoFrameRef.current = null;
+    }
+    autoStateRef.current = reason === "complete" ? "idle" : "paused";
+    autoStopReasonRef.current = reason;
+    setAutoState(autoStateRef.current);
+    if (reason === "visibility") suspendAmbient();
+  }, [suspendAmbient]);
+
+  const playAuto = useCallback(() => {
+    if (autoStateRef.current === "playing") {
+      pauseAuto("user");
+      return;
+    }
+
+    if (autoStopReasonRef.current === "complete" || autoElapsedRef.current >= AUTO_DURATION_MS) {
+      autoElapsedRef.current = 0;
+      setHexagramPhase("selecting");
+      setClosingOpen(false);
+      setSelectedHexagramPanel(null);
+    }
+
+    autoStateRef.current = "playing";
+    autoStopReasonRef.current = null;
+    setAutoState("playing");
+    enableAmbient();
+    autoStartedAtRef.current = performance.now() - autoElapsedRef.current;
+
+    const tick = (now: number) => {
+      if (autoStateRef.current !== "playing") return;
+      const elapsed = Math.min(AUTO_DURATION_MS, now - autoStartedAtRef.current);
+      autoElapsedRef.current = elapsed;
+      const sample = sampleAutoTimeline(elapsed);
+      experienceProgress.set(sample.progress);
+      setActiveStage(stageIndexAt(sample.progress));
+      setHexagramPhase(sample.phase);
+      if (sample.dialogOpen) setClosingOpen(true);
+
+      const root = rootRef.current;
+      if (root) {
+        const scrollRange = Math.max(0, root.scrollHeight - window.innerHeight);
+        window.scrollTo({ top: root.offsetTop + sample.progress * scrollRange });
+      }
+
+      if (sample.complete) {
+        pauseAuto("complete");
+        return;
+      }
+      autoFrameRef.current = window.requestAnimationFrame(tick);
+    };
+
+    autoFrameRef.current = window.requestAnimationFrame(tick);
+  }, [enableAmbient, experienceProgress, pauseAuto]);
+
+  useEffect(() => {
+    const activateOnFirstInteraction = () => {
+      activateAmbient();
+      window.removeEventListener("pointerdown", activateOnFirstInteraction);
+      window.removeEventListener("keydown", activateOnFirstInteraction);
+    };
+    window.addEventListener("pointerdown", activateOnFirstInteraction, { passive: true });
+    window.addEventListener("keydown", activateOnFirstInteraction);
+    return () => {
+      window.removeEventListener("pointerdown", activateOnFirstInteraction);
+      window.removeEventListener("keydown", activateOnFirstInteraction);
+    };
+  }, [activateAmbient]);
+
+  useEffect(() => {
+    const interrupt = (event: Event) => {
+      const target = event.target;
+      if (target instanceof Element && target.closest(".tk-auto-toggle")) return;
+      pauseAuto("user");
+    };
+    window.addEventListener("wheel", interrupt, { passive: true });
+    window.addEventListener("touchstart", interrupt, { passive: true });
+    window.addEventListener("pointerdown", interrupt, { passive: true });
+    window.addEventListener("keydown", interrupt);
+    return () => {
+      window.removeEventListener("wheel", interrupt);
+      window.removeEventListener("touchstart", interrupt);
+      window.removeEventListener("pointerdown", interrupt);
+      window.removeEventListener("keydown", interrupt);
+    };
+  }, [pauseAuto]);
+
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden) {
+        pauseAuto("visibility");
+        suspendAmbient();
+      } else if (
+        autoStateRef.current === "paused" &&
+        autoStopReasonRef.current === "visibility"
+      ) {
+        playAuto();
+      } else {
+        resumeAmbient();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [pauseAuto, playAuto, resumeAmbient, suspendAmbient]);
 
   useEffect(
     () => () => {
       if (continueTimerRef.current !== null) {
         window.clearTimeout(continueTimerRef.current);
+      }
+      if (autoFrameRef.current !== null) {
+        window.cancelAnimationFrame(autoFrameRef.current);
       }
     },
     [],
@@ -109,12 +265,150 @@ export default function TaikyokuApp() {
     };
   }, [fieldOpen]);
 
+  useEffect(() => {
+    if (!closingOpen) return;
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+    const returnFocus = previousFocusRef.current ?? dialogTriggerRef.current;
+    const dialog = dialogRef.current;
+    const focusable = () =>
+      Array.from(
+        dialog?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      );
+    focusable()[0]?.focus();
+
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setClosingOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const items = focusable();
+      if (items.length === 0) {
+        event.preventDefault();
+        return;
+      }
+      const first = items[0];
+      const last = items.at(-1)!;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      window.requestAnimationFrame(() => {
+        const focusTarget = dialogReturnFocusOverrideRef.current ?? returnFocus;
+        dialogReturnFocusOverrideRef.current = null;
+        focusTarget?.focus({ preventScroll: true });
+      });
+    };
+  }, [closingOpen]);
+
   const scrollToStage = (index: number) => {
     sectionRefs.current[index]?.scrollIntoView({
       behavior: reducedMotion ? "auto" : "smooth",
       block: "start",
     });
   };
+
+  const restartExperience = () => {
+    if (autoFrameRef.current !== null) {
+      window.cancelAnimationFrame(autoFrameRef.current);
+      autoFrameRef.current = null;
+    }
+    autoElapsedRef.current = 0;
+    autoStartedAtRef.current = 0;
+    autoStateRef.current = "idle";
+    autoStopReasonRef.current = null;
+    restartSwipeArmedRef.current = false;
+    restartSwipeStartRef.current = null;
+    if (closingOpen) {
+      dialogReturnFocusOverrideRef.current = openingActionRef.current;
+    }
+    setAutoState("idle");
+    setClosingOpen(false);
+    setHexagramPhase("selecting");
+    setSelectedHexagramPanel(null);
+    setDualityBias(0);
+    setSelectedFour(0);
+    setSelectedTrigram(0);
+    setUpperTrigram(0);
+    setLowerTrigram(1);
+    setPulseKey(0);
+    setActiveStage(0);
+    experienceProgress.set(0);
+    window.requestAnimationFrame(() => {
+      scrollToStage(0);
+      if (!closingOpen) openingActionRef.current?.focus({ preventScroll: true });
+    });
+  };
+
+  useEffect(() => {
+    restartExperienceRef.current = restartExperience;
+  });
+
+  useEffect(() => {
+    if (hexagramPhase !== "stacked") {
+      restartSwipeArmedRef.current = false;
+      restartSwipeStartRef.current = null;
+    }
+  }, [hexagramPhase]);
+
+  useEffect(() => {
+    const handleTouchStart = (event: TouchEvent) => {
+      if (!restartSwipeArmedRef.current || event.touches.length !== 1) return;
+      const target = event.target;
+      if (
+        target instanceof Element &&
+        target.closest("button, a, input, select, textarea, [role='button']")
+      ) {
+        restartSwipeStartRef.current = null;
+        return;
+      }
+      const touch = event.touches[0];
+      restartSwipeStartRef.current = {
+        identifier: touch.identifier,
+        x: touch.clientX,
+        y: touch.clientY,
+      };
+    };
+
+    const handleTouchEnd = (event: TouchEvent) => {
+      const start = restartSwipeStartRef.current;
+      if (!restartSwipeArmedRef.current || !start) return;
+      const touch = Array.from(event.changedTouches).find(
+        (candidate) => candidate.identifier === start.identifier,
+      );
+      restartSwipeStartRef.current = null;
+      if (!touch) return;
+      const deltaX = touch.clientX - start.x;
+      const deltaY = touch.clientY - start.y;
+      if (isRestartSwipe(deltaX, deltaY)) {
+        restartSwipeArmedRef.current = false;
+        restartExperienceRef.current();
+      }
+    };
+
+    const handleTouchCancel = () => {
+      restartSwipeStartRef.current = null;
+    };
+
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchend", handleTouchEnd, { passive: true });
+    window.addEventListener("touchcancel", handleTouchCancel, { passive: true });
+    return () => {
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchend", handleTouchEnd);
+      window.removeEventListener("touchcancel", handleTouchCancel);
+    };
+  }, []);
 
   const pulseAndContinue = () => {
     setPulseKey((key) => key + 1);
@@ -143,8 +437,17 @@ export default function TaikyokuApp() {
   };
 
   const revealHexagramField = () => {
+    restartSwipeArmedRef.current = false;
+    restartSwipeStartRef.current = null;
     setSelectedHexagramPanel(null);
     setHexagramPhase("field");
+  };
+
+  const returnFromHexagramField = () => {
+    restartSwipeArmedRef.current = true;
+    restartSwipeStartRef.current = null;
+    setHexagramPhase("stacked");
+    setSelectedHexagramPanel(null);
   };
 
   const moveSelectedPanel = (horizontal: number, vertical: number) => {
@@ -178,7 +481,7 @@ export default function TaikyokuApp() {
           <StaticScene activeStage={activeStage} />
         ) : (
           <TaikyokuCanvas
-            progress={scrollYProgress}
+            progress={experienceProgress}
             activeStage={activeStage}
             reducedMotion={reducedMotion}
             pulseKey={pulseKey}
@@ -200,6 +503,13 @@ export default function TaikyokuApp() {
         )}
       </div>
 
+      <Link href="/" className="tk-home-link" aria-label="AWAI Commonsトップへ戻る">
+        <svg viewBox="0 0 24 24" aria-hidden>
+          <path d="m15 5-7 7 7 7" />
+        </svg>
+        <span>AWAI Commons</span>
+      </Link>
+
       <button
         type="button"
         className={`tk-sound-toggle${ambient.enabled ? " is-on" : ""}`}
@@ -210,6 +520,17 @@ export default function TaikyokuApp() {
         <svg viewBox="0 0 24 24" aria-hidden>
           <path d="M4 13v-2m4 5V8m4 11V5m4 11V8m4 5v-2" />
         </svg>
+      </button>
+
+      <button
+        type="button"
+        className={`tk-auto-toggle${autoState === "playing" ? " is-playing" : ""}`}
+        aria-label={autoState === "playing" ? "自動再生を一時停止" : "自動再生を開始"}
+        aria-pressed={autoState === "playing"}
+        onClick={playAuto}
+      >
+        <span aria-hidden>{autoState === "playing" ? "Ⅱ" : "▶"}</span>
+        AUTO
       </button>
 
       <nav className="tk-progress" aria-label="生成の段階">
@@ -237,10 +558,7 @@ export default function TaikyokuApp() {
           <button
             type="button"
             className="tk-field-back"
-            onClick={() => {
-              setHexagramPhase("stacked");
-              setSelectedHexagramPanel(null);
-            }}
+            onClick={returnFromHexagramField}
           >
             <svg viewBox="0 0 24 24" aria-hidden>
               <path d="m15 5-7 7 7 7" />
@@ -253,7 +571,74 @@ export default function TaikyokuApp() {
             aria-label="六十四卦の場。矢印キーでパネルを選ぶ"
             onKeyDown={handleFieldKeyDown}
           />
+          <footer className="tk-field-footer">
+            <button
+              ref={dialogTriggerRef}
+              type="button"
+              className="tk-closing-trigger"
+              onClick={() => setClosingOpen(true)}
+            >
+              結びを見る
+            </button>
+            <a href="https://awaicommons.com/">© 2026 AWAI Commons</a>
+          </footer>
         </>
+      ) : null}
+
+      {closingOpen ? (
+        <div
+          className="tk-closing-overlay"
+          role="presentation"
+          onPointerDown={(event) => {
+            if (event.target === event.currentTarget) setClosingOpen(false);
+          }}
+        >
+          <div
+            ref={dialogRef}
+            className="tk-closing-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tk-closing-title"
+          >
+            <button
+              type="button"
+              className="tk-closing-close"
+              aria-label="結びを閉じる"
+              onClick={() => setClosingOpen(false)}
+            >
+              ×
+            </button>
+            <p className="tk-closing-kicker">易の生成</p>
+            <h2 id="tk-closing-title">易有太極</h2>
+            <p className="tk-closing-classical" lang="zh-Hant">
+              易有太極、是生兩儀、兩儀生四象、四象生八卦。
+            </p>
+            <p className="tk-closing-translation">
+              <span>易に太極あり。</span>
+              <span>これ両儀を生じ、</span>
+              <span>両儀は四象を生じ、</span>
+              <span>四象は八卦を生ず。</span>
+            </p>
+            <a
+              className="tk-kofi-link"
+              href="https://ko-fi.com/awaicommons"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Ko-fiで応援する
+            </a>
+            <button
+              type="button"
+              className="tk-closing-replay"
+              onClick={restartExperience}
+            >
+              はじめから
+              <svg viewBox="0 0 24 24" aria-hidden>
+                <path d="M20 7v5h-5M4 17v-5h5m10.2 0A7 7 0 0 0 7.1 7.1L4 10m16 4-3.1 2.9A7 7 0 0 1 4.8 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
       ) : null}
 
       <section
@@ -272,7 +657,12 @@ export default function TaikyokuApp() {
             </p>
           </header>
           <div className="tk-stage-copy is-bottom">
-            <button type="button" className="tk-action" onClick={pulseAndContinue}>
+            <button
+              ref={openingActionRef}
+              type="button"
+              className="tk-action"
+              onClick={pulseAndContinue}
+            >
               <span>触れて、はじめる</span>
               <svg viewBox="0 0 24 24" aria-hidden>
                 <path d="M12 5v13m-5-5 5 5 5-5" />
@@ -308,6 +698,9 @@ export default function TaikyokuApp() {
               />
               <span>陽</span>
             </div>
+            <output className="tk-duality-ratio" aria-live="polite">
+              陰 {yinPercentage}%　／　陽 {yangPercentage}%
+            </output>
           </div>
         </div>
       </section>
@@ -351,10 +744,11 @@ export default function TaikyokuApp() {
             <p>三本の爻から、八つの形。</p>
           </div>
           <div className="tk-three-layers" aria-label="三爻は天・人・地の三つの層">
-            <span><i />天</span>
-            <span><i />人</span>
-            <span><i />地</span>
+            <span><i />天<small>上爻</small></span>
+            <span><i />人<small>中爻</small></span>
+            <span><i />地<small>下爻</small></span>
           </div>
+          <p className="tk-three-meaning">三本の爻を、三つの層として見る。</p>
           <div className="tk-stage-copy is-bottom">
             <p className="tk-gesture-hint">触れて、八つの形をめぐる</p>
             <div className="tk-trigram-selector">
@@ -377,7 +771,7 @@ export default function TaikyokuApp() {
       <section
         ref={(node) => { sectionRefs.current[4] = node; }}
         id="hexagrams"
-        className="tk-section is-hexagrams"
+        className={`tk-section is-hexagrams${hexagramPhase === "stacked" ? " is-stacked" : ""}`}
       >
         <div className="tk-sticky">
           <div className="tk-stage-copy is-top">
@@ -428,13 +822,13 @@ export default function TaikyokuApp() {
           ) : null}
           <div className="tk-stage-copy is-bottom is-ending">
             <p>複雑さの根にあるのは、陰と陽。</p>
-            <Link href="/hakke" className="tk-primary-link">
+            <a href="https://awaicommons.com/hakke" className="tk-primary-link">
               <span>八卦を手でつくる</span>
               <svg viewBox="0 0 24 24" aria-hidden>
                 <path d="M5 12h14m-5-5 5 5-5 5" />
               </svg>
-            </Link>
-            <button type="button" className="tk-replay" onClick={() => scrollToStage(0)}>
+            </a>
+            <button type="button" className="tk-replay" onClick={restartExperience}>
               はじめから
               <svg viewBox="0 0 24 24" aria-hidden>
                 <path d="M19 8a8 8 0 1 0 1 6M19 4v4h-4" />

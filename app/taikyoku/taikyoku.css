@@ -75,8 +75,46 @@
 }
 
 .tk-opening-copy {
-  top: max(34px, calc(env(safe-area-inset-top) + 18px));
+  top: max(52px, calc(env(safe-area-inset-top) + 36px));
   text-align: center;
+}
+
+.tk-home-link {
+  position: fixed;
+  top: max(14px, calc(env(safe-area-inset-top) + 6px));
+  left: max(12px, calc(env(safe-area-inset-left) + 8px));
+  z-index: 32;
+  min-height: 30px;
+  padding: 6px 4px;
+  color: var(--tk-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: 9px/1 -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", sans-serif;
+  letter-spacing: 0.08em;
+  opacity: 0.72;
+  pointer-events: auto;
+  transition: color 180ms ease, opacity 180ms ease;
+}
+
+.tk-root.is-field-open .tk-home-link {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tk-home-link:hover {
+  color: var(--tk-gold);
+  opacity: 1;
+}
+
+.tk-home-link svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .tk-opening-copy h1 {
@@ -109,11 +147,11 @@
 }
 
 .tk-stage-copy.is-bottom {
-  bottom: max(32px, calc(env(safe-area-inset-bottom) + 22px));
+  bottom: max(92px, calc(env(safe-area-inset-bottom) + 82px));
 }
 
 .is-taikyoku .tk-stage-copy.is-bottom {
-  bottom: max(25px, calc(env(safe-area-inset-bottom) + 16px));
+  bottom: max(82px, calc(env(safe-area-inset-bottom) + 74px));
 }
 
 .tk-stage-copy h2 {
@@ -163,6 +201,7 @@
 .tk-replay,
 .tk-primary-link,
 .tk-sound-toggle,
+.tk-auto-toggle,
 .tk-duality-control,
 .tk-four-controls,
 .tk-trigram-selector,
@@ -174,25 +213,34 @@
 }
 
 .tk-hexagram-part:first-child {
-  transform: translateY(-70px);
+  transform: none;
 }
 
 .tk-sound-toggle {
   position: fixed;
-  top: max(18px, calc(env(safe-area-inset-top) + 10px));
-  right: max(18px, calc(50vw - 220px));
+  bottom: max(18px, calc(env(safe-area-inset-bottom) + 12px));
+  left: max(18px, calc(50vw - 220px));
   z-index: 30;
-  width: 42px;
-  height: 42px;
-  padding: 0;
+  width: 112px;
+  height: 46px;
+  padding: 0 14px;
   border: 1px solid var(--tk-gold-dim);
-  border-radius: 50%;
+  border-radius: 999px;
   color: var(--tk-muted);
   background: rgb(7 8 8 / 72%);
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
   backdrop-filter: blur(8px);
   transition: opacity 240ms ease;
+}
+
+.tk-sound-toggle::after {
+  content: "環境音";
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
 }
 
 .tk-sound-toggle.is-on {
@@ -207,6 +255,46 @@
   stroke: currentColor;
   stroke-width: 1.35;
   stroke-linecap: round;
+}
+
+.tk-auto-toggle {
+  position: fixed;
+  right: max(18px, calc(50vw - 220px));
+  bottom: max(18px, calc(env(safe-area-inset-bottom) + 12px));
+  z-index: 30;
+  min-width: 100px;
+  height: 46px;
+  padding: 0 16px;
+  border: 1px solid var(--tk-gold-dim);
+  border-radius: 999px;
+  color: var(--tk-gold);
+  background: rgb(7 8 8 / 78%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font: 500 11px/1 -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", sans-serif;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  transition: color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.tk-auto-toggle > span {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 8px;
+  letter-spacing: 0;
+}
+
+.tk-auto-toggle.is-playing {
+  color: var(--tk-ink);
+  border-color: var(--tk-gold);
+  box-shadow: 0 0 24px rgb(214 189 130 / 16%);
 }
 
 .tk-action {
@@ -271,6 +359,15 @@
   margin: 15px auto 0;
   color: var(--tk-gold);
   font-size: 13px;
+}
+
+.tk-duality-ratio {
+  display: block;
+  margin-top: 4px;
+  color: var(--tk-muted);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.08em;
 }
 
 .tk-duality-control input {
@@ -339,23 +436,49 @@
 
 .tk-three-layers {
   position: absolute;
-  top: 46%;
-  left: 145px;
+  top: 44%;
+  right: 48px;
   z-index: 4;
-  width: 100px;
+  width: 160px;
+  padding: 8px 12px;
+  border-block: 1px solid rgb(214 189 130 / 18%);
+  background: rgb(7 8 8 / 72%);
   display: grid;
   gap: 10px;
   pointer-events: none;
   color: var(--tk-gold);
   font-size: 11px;
   letter-spacing: 0.08em;
+  backdrop-filter: blur(8px);
 }
 
 .tk-three-layers span {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto 28px;
   align-items: center;
   gap: 8px;
+}
+
+.tk-three-layers small {
+  color: var(--tk-muted);
+  font: 9px/1.2 -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", sans-serif;
+  letter-spacing: 0.05em;
+}
+
+.tk-three-meaning {
+  position: absolute;
+  top: calc(44% + 104px);
+  left: 50%;
+  z-index: 4;
+  width: 250px;
+  margin: 0;
+  color: var(--tk-muted);
+  font-size: 10px;
+  line-height: 1.7;
+  letter-spacing: 0.09em;
+  text-align: center;
+  pointer-events: none;
+  transform: translateX(-50%);
 }
 
 .tk-three-layers i {
@@ -402,24 +525,28 @@
 
 .tk-hexagram-builder {
   position: absolute;
-  top: 31%;
-  left: 28px;
-  right: 58px;
+  top: 43%;
+  left: 18px;
+  right: 44px;
   z-index: 5;
   display: grid;
+  grid-template-columns: minmax(92px, 1fr) 82px minmax(92px, 1fr);
+  align-items: center;
   justify-items: center;
-  gap: 66px;
+  gap: 4px;
 }
 
 .tk-hexagram-part {
-  width: min(100%, 280px);
+  width: min(100%, 104px);
   display: grid;
-  grid-template-columns: 48px 42px 1fr 42px;
+  grid-template-columns: 30px 1fr 30px;
+  grid-template-rows: 18px 42px;
   align-items: center;
   color: var(--tk-gold);
 }
 
 .tk-hexagram-part > span {
+  grid-column: 1 / -1;
   color: var(--tk-muted);
   font-size: 12px;
   letter-spacing: 0.12em;
@@ -432,30 +559,30 @@
 }
 
 .tk-stack-action {
-  min-width: 180px;
-  min-height: 48px;
-  margin-block: -42px;
-  padding: 0 22px;
+  width: 82px;
+  min-height: 44px;
+  margin: 18px 0 0;
+  padding: 0 6px;
   border: 1px solid var(--tk-gold-dim);
   border-radius: 999px;
   color: var(--tk-gold);
   background: rgb(7 8 8 / 88%);
   font: inherit;
-  font-size: 14px;
-  letter-spacing: 0.13em;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
   backdrop-filter: blur(8px);
 }
 
 .tk-stack-complete {
   position: absolute;
-  top: 29%;
-  bottom: 24%;
+  top: calc(50% + 70px);
   left: 28px;
   right: 58px;
   z-index: 6;
-  display: grid;
-  grid-template-rows: 1fr auto;
-  justify-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 8px;
   color: var(--tk-ink);
   font-size: 13px;
@@ -476,14 +603,15 @@
 }
 
 .tk-stack-complete .tk-hexagram-open {
-  width: min(100%, 280px);
-  min-height: 250px;
-  padding: 0 12px 18px;
-  border: 0;
+  width: min(100%, 238px);
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--tk-gold-dim);
+  border-radius: 999px;
   color: var(--tk-gold);
-  background: transparent;
+  background: rgb(7 8 8 / 82%);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   font: inherit;
   cursor: pointer;
@@ -491,9 +619,14 @@
 }
 
 .tk-hexagram-open span {
-  padding: 8px 12px;
-  background: rgb(7 8 8 / 72%);
-  box-shadow: 0 0 24px rgb(7 8 8 / 80%);
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.tk-section.is-stacked .tk-stage-copy.is-ending {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .tk-field-back {
@@ -539,6 +672,13 @@
   pointer-events: none;
 }
 
+.tk-field-keyboard:focus-visible {
+  opacity: 1;
+  outline: 1px solid rgb(214 189 130 / 52%);
+  outline-offset: -6px;
+  box-shadow: inset 0 0 36px rgb(214 189 130 / 8%);
+}
+
 .tk-root.is-field-open .tk-canvas-layer canvas {
   touch-action: none;
   cursor: grab;
@@ -549,6 +689,14 @@
 .tk-root.is-field-open .is-hexagrams .tk-stage-copy {
   opacity: 0;
   pointer-events: none;
+}
+
+.tk-root.is-field-open .tk-auto-toggle {
+  top: max(18px, calc(env(safe-area-inset-top) + 10px));
+  right: max(18px, calc(50vw - 220px));
+  bottom: auto;
+  min-width: 88px;
+  height: 42px;
 }
 
 .tk-progress,
@@ -677,6 +825,173 @@
   white-space: nowrap;
 }
 
+.tk-field-footer {
+  position: fixed;
+  right: 50%;
+  bottom: 0;
+  z-index: 45;
+  width: min(100%, 480px);
+  min-height: calc(82px + env(safe-area-inset-bottom));
+  padding: 9px 22px max(10px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--tk-rule);
+  background: linear-gradient(180deg, rgb(7 8 8 / 8%), rgb(7 8 8 / 94%) 32%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  transform: translateX(50%);
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+}
+
+.tk-field-footer > a {
+  min-height: 26px;
+  padding: 4px 8px;
+  color: var(--tk-muted);
+  font: 10px/1.5 -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", sans-serif;
+  letter-spacing: 0.12em;
+}
+
+.tk-closing-trigger {
+  min-width: 132px;
+  min-height: 38px;
+  padding: 0 18px;
+  border: 1px solid var(--tk-gold-dim);
+  border-radius: 999px;
+  color: var(--tk-gold);
+  background: rgb(7 8 8 / 78%);
+  font: 12px/1 "Yu Mincho", "Hiragino Mincho ProN", serif;
+  letter-spacing: 0.14em;
+  cursor: pointer;
+}
+
+.tk-closing-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+  background: rgb(2 3 3 / 70%);
+  display: grid;
+  place-items: center;
+  backdrop-filter: blur(10px);
+  animation: tk-fade-in 360ms ease both;
+}
+
+.tk-closing-dialog {
+  position: relative;
+  width: min(100%, 390px);
+  max-height: min(760px, calc(100dvh - 48px));
+  overflow: auto;
+  padding: 34px 26px 28px;
+  border: 1px solid rgb(214 189 130 / 54%);
+  background:
+    radial-gradient(circle at 50% 0%, rgb(214 189 130 / 10%), transparent 42%),
+    rgb(9 10 10 / 97%);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 58%), inset 0 0 45px rgb(214 189 130 / 3%);
+  text-align: center;
+  animation: tk-dialog-in 420ms cubic-bezier(.2,.8,.2,1) both;
+}
+
+.tk-closing-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  color: var(--tk-muted);
+  background: transparent;
+  font: 26px/1 -apple-system, BlinkMacSystemFont, sans-serif;
+  cursor: pointer;
+}
+
+.tk-closing-kicker {
+  margin: 0 0 8px;
+  color: var(--tk-gold);
+  font: 10px/1.4 -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", sans-serif;
+  letter-spacing: 0.22em;
+}
+
+.tk-closing-dialog h2 {
+  margin: 0;
+  color: var(--tk-ink);
+  font-size: clamp(34px, 10vw, 46px);
+  font-weight: 500;
+  letter-spacing: 0.15em;
+}
+
+.tk-closing-classical {
+  margin: 26px 0 0;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--tk-rule);
+  color: var(--tk-gold);
+  font-size: 15px;
+  line-height: 2;
+  letter-spacing: 0.08em;
+}
+
+.tk-closing-translation {
+  margin: 20px 0 0;
+  color: var(--tk-ink);
+  font-size: 15px;
+  line-height: 1.9;
+  letter-spacing: 0.08em;
+}
+
+.tk-closing-translation span {
+  display: block;
+}
+
+.tk-kofi-link {
+  min-height: 46px;
+  margin-top: 26px;
+  padding: 0 24px;
+  border: 1px solid var(--tk-gold-dim);
+  border-radius: 999px;
+  color: var(--tk-gold);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: 12px/1 -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", sans-serif;
+  letter-spacing: 0.09em;
+}
+
+.tk-closing-replay {
+  min-height: 44px;
+  margin: 12px auto 0;
+  padding: 0 18px;
+  border: 0;
+  color: var(--tk-muted);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font: 11px/1 -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", sans-serif;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+}
+
+.tk-closing-replay svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@keyframes tk-fade-in {
+  from { opacity: 0; }
+}
+
+@keyframes tk-dialog-in {
+  from { opacity: 0; transform: translateY(14px) scale(.98); }
+}
+
 /* WebGL loading / fallback. */
 .tk-static-scene {
   position: absolute;
@@ -694,6 +1009,15 @@
   border: 1px solid var(--tk-gold);
   border-radius: 50%;
   box-shadow: 0 0 32px rgb(214 189 130 / 16%), inset 0 0 60px rgb(214 189 130 / 6%);
+}
+
+.tk-static-orb.is-stage-0 {
+  animation: tk-orb-breathe 5.8s ease-in-out infinite;
+}
+
+@keyframes tk-orb-breathe {
+  0%, 100% { transform: scale(.985) rotate(-1deg); box-shadow: 0 0 26px rgb(214 189 130 / 13%), inset 0 0 54px rgb(214 189 130 / 5%); }
+  50% { transform: scale(1.015) rotate(1deg); box-shadow: 0 0 42px rgb(214 189 130 / 20%), inset 0 0 68px rgb(214 189 130 / 8%); }
 }
 
 .tk-static-orb::before,
@@ -778,8 +1102,22 @@
   }
 
   .tk-hexagram-builder {
-    top: 29%;
-    gap: 49px;
+    top: 44%;
+    left: 14px;
+    right: 38px;
+    grid-template-columns: minmax(88px, 1fr) 82px minmax(88px, 1fr);
+    gap: 2px;
+  }
+
+  .tk-stack-complete {
+    top: calc(50% + 56px);
+    left: 18px;
+    right: 38px;
+  }
+
+  .is-hexagrams:not(.is-stacked) .tk-stage-copy.is-ending .tk-primary-link,
+  .is-hexagrams:not(.is-stacked) .tk-stage-copy.is-ending .tk-replay {
+    display: none;
   }
 }
 

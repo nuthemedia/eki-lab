@@ -83,7 +83,8 @@ function createAmbientNodes(): AmbientNodes {
 export function useAmbientSound(activeStage: number) {
   const nodesRef = useRef<AmbientNodes | null>(null);
   const pauseTimerRef = useRef<number | null>(null);
-  const [enabled, setEnabled] = useState(false);
+  const [enabled, setEnabled] = useState(true);
+  const enabledRef = useRef(true);
 
   useEffect(() => {
     const nodes = nodesRef.current;
@@ -112,7 +113,7 @@ export function useAmbientSound(activeStage: number) {
     [],
   );
 
-  const toggle = useCallback(() => {
+  const startPlayback = useCallback(() => {
     const nodes = nodesRef.current ?? createAmbientNodes();
     nodesRef.current = nodes;
     const now = nodes.context.currentTime;
@@ -121,29 +122,52 @@ export function useAmbientSound(activeStage: number) {
       pauseTimerRef.current = null;
     }
 
-    if (enabled) {
-      nodes.master.gain.cancelScheduledValues(now);
-      nodes.master.gain.setTargetAtTime(0.0001, now, 0.36);
-      pauseTimerRef.current = window.setTimeout(() => {
-        nodes.music.pause();
-        pauseTimerRef.current = null;
-      }, 1100);
-      setEnabled(false);
-      return;
-    }
-
     nodes.master.gain.cancelScheduledValues(now);
     nodes.master.gain.setTargetAtTime(0.72, now, 1.15);
-    setEnabled(true);
     void nodes.context.resume().catch(() => undefined);
+    // The procedural bed remains available if the optional music file fails.
     void nodes.music.play().catch(() => {
-      const failedAt = nodes.context.currentTime;
-      nodes.master.gain.cancelScheduledValues(failedAt);
-      nodes.master.gain.setTargetAtTime(0.0001, failedAt, 0.08);
       nodes.music.pause();
-      setEnabled(false);
     });
-  }, [enabled]);
+  }, []);
 
-  return { enabled, toggle };
+  const suspend = useCallback(() => {
+    const nodes = nodesRef.current;
+    if (!nodes) return;
+    const now = nodes.context.currentTime;
+    nodes.master.gain.cancelScheduledValues(now);
+    nodes.master.gain.setTargetAtTime(0.0001, now, 0.36);
+    if (pauseTimerRef.current !== null) window.clearTimeout(pauseTimerRef.current);
+    pauseTimerRef.current = window.setTimeout(() => {
+      nodes.music.pause();
+      pauseTimerRef.current = null;
+    }, 1100);
+  }, []);
+
+  const activate = useCallback(() => {
+    if (enabledRef.current) startPlayback();
+  }, [startPlayback]);
+
+  const enable = useCallback(() => {
+    enabledRef.current = true;
+    setEnabled(true);
+    startPlayback();
+  }, [startPlayback]);
+
+  const disable = useCallback(() => {
+    enabledRef.current = false;
+    setEnabled(false);
+    suspend();
+  }, [suspend]);
+
+  const resume = useCallback(() => {
+    if (enabledRef.current) startPlayback();
+  }, [startPlayback]);
+
+  const toggle = useCallback(() => {
+    if (enabledRef.current) disable();
+    else enable();
+  }, [disable, enable]);
+
+  return { enabled, activate, enable, disable, suspend, resume, toggle };
 }
