@@ -14,9 +14,9 @@ export type CameraPose = {
 };
 
 export const CAMERA_KEYFRAMES: readonly CameraKeyframe[] = [
-  { progress: 0, position: [0, 0, 8], target: [0, 0, 0], fov: 38 },
-  { progress: 0.14, position: [0, 0, 3.5], target: [0, 0, 0], fov: 38 },
-  { progress: 0.24, position: [0, 0, 0.6], target: [0, 0, -3], fov: 50 },
+  { progress: 0, position: [0, 0.2, 8], target: [0, 0.5, 0], fov: 38 },
+  { progress: 0.14, position: [0, 0.1, 7.6], target: [0, 0.2, 0], fov: 40 },
+  { progress: 0.27, position: [0, 0, 7.2], target: [0, 0, 0], fov: 42 },
   { progress: 0.38, position: [0, 1.1, -4], target: [0, 0, -10], fov: 48 },
   { progress: 0.5, position: [0, 1.6, -5.5], target: [0, 0, -10], fov: 52 },
   { progress: 0.62, position: [0, 0.8, -11], target: [0, 0, -18], fov: 44 },

@@ -10,6 +10,7 @@ type Props = {
   positions: readonly Vec3[];
   scale?: number;
   color?: string;
+  opacity?: number;
 };
 
 const BAR_WIDTH = 1.28;
@@ -42,6 +43,7 @@ export default function LineForms({
   positions,
   scale = 1,
   color = "#d6bd82",
+  opacity = 1,
 }: Props) {
   const fullRef = useRef<THREE.InstancedMesh>(null);
   const halfRef = useRef<THREE.InstancedMesh>(null);
@@ -112,7 +114,13 @@ export default function LineForms({
           frustumCulled={false}
         >
           <boxGeometry args={[1, 1, 1]} />
-          <meshBasicMaterial color={color} toneMapped={false} />
+          <meshBasicMaterial
+            color={color}
+            transparent={opacity < 1}
+            opacity={opacity}
+            depthWrite={opacity === 1}
+            toneMapped={false}
+          />
         </instancedMesh>
       ) : null}
       {matrices.half.length ? (
@@ -122,7 +130,13 @@ export default function LineForms({
           frustumCulled={false}
         >
           <boxGeometry args={[1, 1, 1]} />
-          <meshBasicMaterial color={color} toneMapped={false} />
+          <meshBasicMaterial
+            color={color}
+            transparent={opacity < 1}
+            opacity={opacity}
+            depthWrite={opacity === 1}
+            toneMapped={false}
+          />
         </instancedMesh>
       ) : null}
     </group>

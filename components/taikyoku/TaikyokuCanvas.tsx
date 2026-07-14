@@ -8,9 +8,10 @@ import { TRIGRAMS } from "@/domain/iching/hexagrams";
 import { sampleCamera, stageIndexAt, type Vec3 } from "@/data/taikyoku/camera";
 import {
   binaryForms,
-  hexagramField,
   type BinaryLine,
+  type HexagramPhase,
 } from "@/data/taikyoku/generation";
+import InteractiveHexagramField from "./InteractiveHexagramField";
 import LineForms from "./LineForms";
 import StaticScene from "./StaticScene";
 
@@ -20,12 +21,18 @@ export type TaikyokuCanvasProps = {
   reducedMotion: boolean;
   pulseKey: number;
   dualityBias: number;
+  selectedFour: number;
   selectedTrigram: number;
-  stacked: boolean;
+  upperTrigram: number;
+  lowerTrigram: number;
+  hexagramPhase: HexagramPhase;
+  selectedHexagramPanel: number | null;
   onPulse: () => void;
   onDualityBias: (value: number) => void;
+  onSelectFour: (index: number) => void;
   onSelectTrigram: (index: number) => void;
-  onStack: () => void;
+  onRevealHexagramField: () => void;
+  onSelectHexagramPanel: (index: number) => void;
   onWebGLFailure: () => void;
 };
 
@@ -52,10 +59,12 @@ function applySphereUniforms(
   bias: number,
   pulse: number,
   stage: number,
+  time: number,
 ) {
   material.uniforms.uBias.value = bias;
   material.uniforms.uPulse.value = pulse;
   material.uniforms.uStage.value = stage;
+  material.uniforms.uTime.value = time;
 }
 
 const VERTEX_SHADER = `
@@ -76,6 +85,7 @@ const FRAGMENT_SHADER = `
   uniform float uBias;
   uniform float uPulse;
   uniform float uStage;
+  uniform float uTime;
   varying vec3 vNormal;
   varying vec3 vPosition;
   varying vec3 vView;
@@ -89,16 +99,18 @@ const FRAGMENT_SHADER = `
   void main() {
     float facing = abs(dot(normalize(vNormal), normalize(vView)));
     float rim = pow(1.0 - facing, 2.25);
-    float flow = sin(vPosition.y * 2.8 + vPosition.x * (2.2 + uBias * 3.0));
-    flow += sin(vPosition.z * 3.4 - vPosition.y * 1.7) * 0.42;
+    float flow = sin(vPosition.y * 3.2 + vPosition.x * 2.4 + uBias * 2.2 + uTime * 0.34);
+    flow += sin(vPosition.z * 3.8 - vPosition.y * 1.7 - uTime * 0.24) * 0.48;
     float dual = smoothstep(-0.08, 0.08, flow);
     float grain = hash(floor(vPosition * 42.0));
     vec3 ink = vec3(0.025, 0.028, 0.03);
     vec3 gold = vec3(0.84, 0.72, 0.48);
-    vec3 inside = mix(ink, gold * 0.56, dual * uStage);
+    float currentA = exp(-abs(flow) * 5.2);
+    float currentB = exp(-abs(flow + 0.72) * 7.0);
+    vec3 inside = ink + gold * (currentA * 0.54 + currentB * 0.22) * uStage;
     float pulseRing = 1.0 - smoothstep(0.03, 0.16, abs(length(vPosition.xy) - (1.0 - uPulse)));
     vec3 color = inside + gold * (rim * 1.15 + pulseRing * uPulse * 0.65 + grain * 0.025);
-    float alpha = 0.2 + rim * 0.72 + dual * uStage * 0.12 + pulseRing * uPulse * 0.18;
+    float alpha = 0.2 + rim * 0.72 + (currentA + currentB) * uStage * 0.18 + pulseRing * uPulse * 0.18;
     gl_FragColor = vec4(color, clamp(alpha, 0.0, 0.92));
   }
 `;
@@ -106,18 +118,37 @@ const FRAGMENT_SHADER = `
 function CameraRig({
   progress,
   reducedMotion,
-}: Pick<TaikyokuCanvasProps, "progress" | "reducedMotion">) {
+  fieldOpen,
+}: Pick<TaikyokuCanvasProps, "progress" | "reducedMotion"> & { fieldOpen: boolean }) {
   const { camera, invalidate } = useThree();
   const target = useMemo(() => new THREE.Vector3(), []);
+  const fieldMix = useRef(0);
 
   useEffect(() => progress.on("change", () => invalidate()), [invalidate, progress]);
+  useEffect(() => invalidate(), [fieldOpen, invalidate]);
 
   useFrame(() => {
     const raw = progress.get();
     const pose = sampleCamera(
       reducedMotion ? REDUCED_PROGRESS[stageIndexAt(raw)] : raw,
     );
-    applyCameraPose(camera, pose.position, pose.target, pose.fov, target);
+    const desiredMix = fieldOpen ? 1 : 0;
+    fieldMix.current = reducedMotion
+      ? desiredMix
+      : THREE.MathUtils.lerp(fieldMix.current, desiredMix, 0.1);
+    const mix = fieldMix.current;
+    const position: Vec3 = [
+      THREE.MathUtils.lerp(pose.position[0], 0, mix),
+      THREE.MathUtils.lerp(pose.position[1], 0, mix),
+      THREE.MathUtils.lerp(pose.position[2], -24.5, mix),
+    ];
+    const lookAt: Vec3 = [
+      THREE.MathUtils.lerp(pose.target[0], 0, mix),
+      THREE.MathUtils.lerp(pose.target[1], 0, mix),
+      THREE.MathUtils.lerp(pose.target[2], -34, mix),
+    ];
+    applyCameraPose(camera, position, lookAt, THREE.MathUtils.lerp(pose.fov, 48, mix), target);
+    if (Math.abs(mix - desiredMix) > 0.002) invalidate();
   });
 
   return null;
@@ -185,8 +216,10 @@ function TaikyokuSphere({
 >) {
   const meshRef = useRef<THREE.Mesh>(null);
   const dragStart = useRef<number | null>(null);
+  const dragOrigin = useRef(0);
   const displayBias = useRef(0);
   const pulse = useRef(0);
+  const elapsed = useRef(0);
   const { invalidate } = useThree();
 
   const material = useMemo(
@@ -201,6 +234,7 @@ function TaikyokuSphere({
           uBias: { value: 0 },
           uPulse: { value: 0 },
           uStage: { value: 0 },
+          uTime: { value: 0 },
         },
       }),
     [],
@@ -215,6 +249,7 @@ function TaikyokuSphere({
   }, [invalidate, pulseKey]);
 
   useFrame((_, delta) => {
+    elapsed.current += delta;
     const targetBias = activeStage === 1 ? dualityBias : 0;
     displayBias.current = THREE.MathUtils.lerp(displayBias.current, targetBias, 0.16);
     pulse.current = Math.max(0, pulse.current - delta * 0.72);
@@ -223,11 +258,12 @@ function TaikyokuSphere({
       activeStage === 1 ? 1 : 0,
       0.12,
     );
-    applySphereUniforms(material, displayBias.current, pulse.current, stage);
+    applySphereUniforms(material, displayBias.current, pulse.current, stage, elapsed.current);
     if (
       pulse.current > 0 ||
       Math.abs(displayBias.current - targetBias) > 0.002 ||
-      Math.abs(stage - (activeStage === 1 ? 1 : 0)) > 0.002
+      Math.abs(stage - (activeStage === 1 ? 1 : 0)) > 0.002 ||
+      activeStage === 1
     ) {
       invalidate();
     }
@@ -237,19 +273,21 @@ function TaikyokuSphere({
     if (activeStage !== 1) return;
     event.stopPropagation();
     dragStart.current = event.nativeEvent.clientX;
+    dragOrigin.current = dualityBias;
     (event.nativeEvent.target as Element | null)?.setPointerCapture?.(event.pointerId);
   };
 
   const handlePointerMove = (event: ThreeEvent<PointerEvent>) => {
     if (dragStart.current === null || activeStage !== 1) return;
     const distance = event.nativeEvent.clientX - dragStart.current;
-    onDualityBias(THREE.MathUtils.clamp(distance / window.innerWidth, -0.2, 0.2));
+    onDualityBias(
+      THREE.MathUtils.clamp(dragOrigin.current + distance / (window.innerWidth * 0.42), -1, 1),
+    );
   };
 
   const endDrag = () => {
     if (dragStart.current === null) return;
     dragStart.current = null;
-    onDualityBias(0);
   };
 
   return (
@@ -303,6 +341,54 @@ const RING_POSITIONS: readonly Vec3[] = Array.from({ length: 8 }, (_, index) => 
   return [Math.cos(angle) * 0.85, Math.sin(angle) * 0.9 - 0.25, -18] as Vec3;
 });
 
+function FourSymbols({
+  activeStage,
+  selectedFour,
+  onSelect,
+}: {
+  activeStage: number;
+  selectedFour: number;
+  onSelect: (index: number) => void;
+}) {
+  const forms = binaryForms(2);
+
+  return (
+    <group>
+      <Branches />
+      {forms.map((form, index) => {
+        const position = FOUR_POSITIONS[index];
+        const selected = selectedFour === index;
+        const displayPosition: Vec3 = [
+          position[0],
+          position[1] + (selected ? 0.14 : 0),
+          position[2] + (selected ? 0.18 : 0),
+        ];
+        return (
+          <group key={index}>
+            <LineForms
+              forms={[form]}
+              positions={[displayPosition]}
+              scale={selected ? 0.65 : 0.46}
+              color={selected ? "#f2dca5" : "#a99566"}
+            />
+            <mesh
+              position={displayPosition}
+              onClick={(event) => {
+                if (activeStage !== 2) return;
+                event.stopPropagation();
+                onSelect(index);
+              }}
+            >
+              <planeGeometry args={[1.25, 1.2]} />
+              <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+            </mesh>
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
 function TrigramRing({
   activeStage,
   selectedTrigram,
@@ -314,47 +400,60 @@ function TrigramRing({
 }) {
   return (
     <group>
-      <LineForms
-        forms={TRIGRAMS.map((trigram) => trigram.lines)}
-        positions={RING_POSITIONS}
-        scale={0.36}
-      />
-      <LineForms
-        forms={[TRIGRAMS[selectedTrigram].lines]}
-        positions={[[0, -0.25, -17.92]]}
-        scale={0.56}
-        color="#f0d99f"
-      />
-      {RING_POSITIONS.map((position, index) => (
-        <mesh
-          key={index}
-          position={position}
-          onClick={(event) => {
-            if (activeStage !== 3) return;
-            event.stopPropagation();
-            onSelect(index);
-          }}
-        >
-          <planeGeometry args={[1.25, 1]} />
-          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
-        </mesh>
-      ))}
+      {RING_POSITIONS.map((position, index) => {
+        const selected = selectedTrigram === index;
+        const displayPosition: Vec3 = [
+          position[0],
+          position[1],
+          position[2] + (selected ? 0.16 : 0),
+        ];
+        return (
+          <group key={index}>
+            <LineForms
+              forms={[TRIGRAMS[index].lines]}
+              positions={[displayPosition]}
+              scale={selected ? 0.44 : 0.34}
+              color={selected ? "#f2dca5" : "#a99566"}
+            />
+            <mesh
+              position={displayPosition}
+              onClick={(event) => {
+                if (activeStage !== 3) return;
+                event.stopPropagation();
+                onSelect(index);
+              }}
+            >
+              <planeGeometry args={[1.15, 0.9]} />
+              <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+            </mesh>
+          </group>
+        );
+      })}
     </group>
   );
 }
 
 function StackingHexagram({
   activeStage,
-  selectedTrigram,
-  stacked,
-  onStack,
-}: Pick<TaikyokuCanvasProps, "activeStage" | "selectedTrigram" | "stacked" | "onStack">) {
-  const lower = TRIGRAMS[selectedTrigram].lines as BinaryLine[];
-  const upper = TRIGRAMS[(selectedTrigram + 3) % TRIGRAMS.length].lines as BinaryLine[];
+  upperTrigram,
+  lowerTrigram,
+  hexagramPhase,
+  onRevealHexagramField,
+}: Pick<
+  TaikyokuCanvasProps,
+  | "activeStage"
+  | "upperTrigram"
+  | "lowerTrigram"
+  | "hexagramPhase"
+  | "onRevealHexagramField"
+>) {
+  const lower = TRIGRAMS[lowerTrigram].lines as BinaryLine[];
+  const upper = TRIGRAMS[upperTrigram].lines as BinaryLine[];
+  const stacked = hexagramPhase === "stacked";
   const forms = stacked ? [[...lower, ...upper]] : [lower, upper];
   const positions: Vec3[] = stacked
     ? [[0, 0, -27]]
-    : [[0, -0.55, -27], [0, 0.55, -27]];
+    : [[0, -0.92, -27], [0, 0.92, -27]];
 
   return (
     <group>
@@ -362,9 +461,9 @@ function StackingHexagram({
       <mesh
         position={[0, 0, -26.92]}
         onClick={(event) => {
-          if (activeStage !== 4) return;
+          if (activeStage !== 4 || !stacked) return;
           event.stopPropagation();
-          onStack();
+          onRevealHexagramField();
         }}
       >
         <planeGeometry args={[1.7, 1.8]} />
@@ -374,26 +473,16 @@ function StackingHexagram({
   );
 }
 
-function HexagramField() {
-  const forms = useMemo(() => hexagramField(TRIGRAMS), []);
-  const positions = useMemo<Vec3[]>(
-    () =>
-      forms.map((_, index) => {
-        const column = index % 8;
-        const row = Math.floor(index / 8);
-        return [(column - 3.5) * 0.52, (3.5 - row) * 0.5, -34] as Vec3;
-      }),
-    [forms],
-  );
-  return <LineForms forms={forms} positions={positions} scale={0.22} color="#bda66f" />;
-}
-
 function Scene(props: TaikyokuCanvasProps) {
   return (
     <>
       <color attach="background" args={["#070808"]} />
       <fog attach="fog" args={["#070808", 8, 28]} />
-      <CameraRig progress={props.progress} reducedMotion={props.reducedMotion} />
+      <CameraRig
+        progress={props.progress}
+        reducedMotion={props.reducedMotion}
+        fieldOpen={props.hexagramPhase === "field"}
+      />
       <ContextGuard onFailure={props.onWebGLFailure} />
       <Dust />
       <TaikyokuSphere
@@ -403,26 +492,37 @@ function Scene(props: TaikyokuCanvasProps) {
         onPulse={props.onPulse}
         onDualityBias={props.onDualityBias}
       />
-      <group visible={props.activeStage === 2}>
-        <Branches />
-        <LineForms forms={binaryForms(2)} positions={FOUR_POSITIONS} scale={0.48} />
-      </group>
-      <group visible={props.activeStage === 3}>
+      {props.activeStage === 2 ? (
+        <FourSymbols
+          activeStage={props.activeStage}
+          selectedFour={props.selectedFour}
+          onSelect={props.onSelectFour}
+        />
+      ) : null}
+      {props.activeStage === 3 ? (
         <TrigramRing
           activeStage={props.activeStage}
           selectedTrigram={props.selectedTrigram}
           onSelect={props.onSelectTrigram}
         />
-      </group>
-      <group visible={props.activeStage === 4}>
-        <StackingHexagram
-          activeStage={props.activeStage}
-          selectedTrigram={props.selectedTrigram}
-          stacked={props.stacked}
-          onStack={props.onStack}
-        />
-        <HexagramField />
-      </group>
+      ) : null}
+      {props.activeStage === 4 ? (
+        props.hexagramPhase === "field" ? (
+          <InteractiveHexagramField
+            reducedMotion={props.reducedMotion}
+            selectedIndex={props.selectedHexagramPanel}
+            onSelect={props.onSelectHexagramPanel}
+          />
+        ) : (
+          <StackingHexagram
+            activeStage={props.activeStage}
+            upperTrigram={props.upperTrigram}
+            lowerTrigram={props.lowerTrigram}
+            hexagramPhase={props.hexagramPhase}
+            onRevealHexagramField={props.onRevealHexagramField}
+          />
+        )
+      ) : null}
     </>
   );
 }
