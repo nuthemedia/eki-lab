@@ -39,10 +39,15 @@ export function CardCastingAnimation({ lines, changingIndex, onDone }: Props) {
     };
 
     if (reduce) {
-      setVisible(6);
-      setHighlight(true);
-      const t = window.setTimeout(finish, 500);
-      return () => window.clearTimeout(t);
+      const revealTimer = window.setTimeout(() => {
+        setVisible(6);
+        setHighlight(true);
+      }, 0);
+      const finishTimer = window.setTimeout(finish, 500);
+      return () => {
+        window.clearTimeout(revealTimer);
+        window.clearTimeout(finishTimer);
+      };
     }
 
     const timers: number[] = [];

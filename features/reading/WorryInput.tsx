@@ -84,7 +84,7 @@ export function WorryInput({ initialValue, onSubmit, historySlot }: Props) {
           </Link>
         </span>
         <Link href="/" className="ik-link-quiet">
-          易のかたち トップへ
+          AWAI Commons トップへ
         </Link>
       </motion.div>
     </div>

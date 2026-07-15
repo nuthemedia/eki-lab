@@ -168,7 +168,7 @@ export async function POST(request: Request) {
   let remaining: number | null = null;
 
   if (hasOpenAiKey()) {
-    const usage = await checkAndRecordUsage(userId, "refine");
+    const usage = await checkAndRecordUsage(request, userId, "refine");
     remaining = usage.remaining;
     if (usage.allowed) {
       try {

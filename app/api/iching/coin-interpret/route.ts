@@ -3,6 +3,7 @@ import { HEXAGRAMS_BY_NUMBER, LINE_LABELS } from "@/domain/iching/hexagrams";
 import { HEXAGRAM_TEXTS } from "@/domain/iching/hexagramTexts";
 import { HEXAGRAM_DICTIONARY } from "@/domain/iching/hexagramDictionary";
 import { callIchingLlm, hasOpenAiKey } from "@/lib/ichingLlm";
+import { getCoinInterpretModel } from "@/lib/ichingModels";
 import { checkAndRecordUsage, getIchingUserId } from "@/lib/ichingUsage";
 import {
   buildFallbackCoinInterpretation, CATEGORY_LENSES, guidanceForCategory,
@@ -10,7 +11,7 @@ import {
 } from "@/lib/coinInterpretation";
 
 export const runtime = "nodejs";
-const MODEL = process.env.OPENAI_ICHING_INTERPRET_MODEL || "gpt-5.6-luna";
+const MODEL = getCoinInterpretModel();
 
 const SCHEMA = { type: "object", additionalProperties: false, properties: { situation: { type: "string" }, changingPoint: { type: "string" }, caution: { type: "string" }, action: { type: "string" }, reflection: { type: "string" } }, required: ["situation", "changingPoint", "caution", "action", "reflection"] };
 
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
   let source: "llm" | "fallback" = "fallback";
   const userId = getIchingUserId(request) || crypto.randomUUID();
   if (hasOpenAiKey()) {
-    const usage = await checkAndRecordUsage(userId, "interpret");
+    const usage = await checkAndRecordUsage(request, userId, "interpret");
     if (usage.allowed) {
       const hex = HEXAGRAMS_BY_NUMBER[primaryNumber], text = HEXAGRAM_TEXTS[primaryNumber], entry = HEXAGRAM_DICTIONARY[primaryNumber];
       const guidance = guidanceForCategory(primaryNumber, category);

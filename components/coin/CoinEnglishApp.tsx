@@ -102,7 +102,7 @@ function ReadingPair({ locale, casts }: { locale: CoinLocale; casts: CoinCast[] 
   const name = (number: number) => locale === "en" ? HEXAGRAM_ENGLISH[number].name : hexagramFromLines(number === primary.number ? reading.primaryLines : reading.relatingLines)!.name;
   return <div className="coin-pair">
     <div className="coin-pair-col"><small>{copy.primary} · {locale === "en" ? `Hexagram ${primary.number}` : `第${primary.number}卦`}</small><h2>{name(primary.number)}</h2><HexStack locale={locale} lines={reading.primaryLines} changing={reading.changingLineIndexes} /></div>
-    {relating ? <><span className="coin-arrow">→</span><div className="coin-pair-col"><small>{copy.relating} · {locale === "en" ? `Hexagram ${relating.number}` : `第${relating.number}卦`}</small><h2>{name(relating.number)}</h2><HexStack locale={locale} lines={reading.relatingLines} /></div></> : <div className="coin-no-change"><b>{copy.noChanging}</b><span>{copy.noRelating}</span></div>}
+    {relating ? <><span className="coin-arrow">→</span><div className="coin-pair-col"><small>{copy.relating} · {locale === "en" ? `Hexagram ${relating.number}` : `第${relating.number}卦`}</small><h2>{name(relating.number)}</h2><HexStack locale={locale} lines={reading.relatingLines} /></div></> : <div className="coin-no-change"><b>{copy.noRelating}</b></div>}
   </div>;
 }
 
@@ -118,6 +118,7 @@ export default function CoinEnglishApp({ initialQuestion = "" }: { initialQuesti
   const [coins, setCoins] = useState<[CoinFace, CoinFace, CoinFace]>(["heads", "heads", "heads"]);
   const [casts, setCasts] = useState<CoinCast[]>([]);
   const [rolling, setRolling] = useState(false);
+  const [completing, setCompleting] = useState(false);
   const [settledCoinCount, setSettledCoinCount] = useState(3);
   const [muted, setMuted] = useState(false);
   const [ai, setAi] = useState<AiReading | null>(null);
@@ -129,9 +130,11 @@ export default function CoinEnglishApp({ initialQuestion = "" }: { initialQuesti
   const [announcement, setAnnouncement] = useState("");
   const screenTitleRef = useRef<HTMLHeadingElement>(null);
   const rollTimersRef = useRef<number[]>([]);
+  const completionTimerRef = useRef<number | null>(null);
+  const castLockedRef = useRef(false);
 
   useEffect(() => { const timer = window.setTimeout(() => { setMuted(false); setCoinMuted(false); setResumeSession(readSession()); }, 0); return () => window.clearTimeout(timer); }, []);
-  useEffect(() => () => { rollTimersRef.current.forEach(window.clearTimeout); }, []);
+  useEffect(() => () => { rollTimersRef.current.forEach(window.clearTimeout); if (completionTimerRef.current !== null) window.clearTimeout(completionTimerRef.current); }, []);
   useEffect(() => {
     if (phase !== "casting" || !question.trim() || casts.length === 0 || casts.length >= 6) return;
     const session: CoinSessionV1 = { version: 1, question, category, mode, coins, casts, savedAt: new Date().toISOString() };
@@ -152,26 +155,39 @@ export default function CoinEnglishApp({ initialQuestion = "" }: { initialQuesti
   const coinLineLabels = isEn ? EN_COIN_LINE_LABELS : COIN_LINE_LABELS;
   const hexName = (number: number) => isEn ? HEXAGRAM_ENGLISH[number].name : (number === primary?.number ? primary.name : relating?.name ?? "");
 
-  const cancelRoll = () => { rollTimersRef.current.forEach(window.clearTimeout); rollTimersRef.current = []; setRolling(false); setSettledCoinCount(3); };
+  const cancelRoll = () => { rollTimersRef.current.forEach(window.clearTimeout); rollTimersRef.current = []; if (completionTimerRef.current !== null) window.clearTimeout(completionTimerRef.current); completionTimerRef.current = null; castLockedRef.current = false; setRolling(false); setCompleting(false); setSettledCoinCount(3); };
   const toggleMute = () => { unlockCoinSound(); const next = !muted; setMuted(next); setCoinMuted(next); if (!next) window.setTimeout(playSoundOn, 35); };
   const reset = () => { cancelRoll(); clearStoredSession(); setResumeSession(null); setQuestion(""); setCategory("general"); setCasts([]); setCoins(["heads", "heads", "heads"]); setAi(null); setAiSource(null); setAiError(null); setPhase("question"); };
-  const start = () => { if (!question.trim()) return; unlockCoinSound(); if (hasInProgressCast) { setPhase("casting"); return; } playStart(); clearStoredSession(); setResumeSession(null); setCasts([]); setAi(null); setAiSource(null); setPhase("casting"); };
-  const resume = () => { if (!resumeSession) return; setQuestion(resumeSession.question); setCategory(resumeSession.category); setMode(resumeSession.mode); setCoins(resumeSession.coins); setCasts(resumeSession.casts); setResumeSession(null); setPhase("casting"); };
+  const start = () => { if (!question.trim()) return; unlockCoinSound(); if (hasInProgressCast) { setPhase("casting"); return; } castLockedRef.current = false; setCompleting(false); playStart(); clearStoredSession(); setResumeSession(null); setCasts([]); setAi(null); setAiSource(null); setPhase("casting"); };
+  const resume = () => { if (!resumeSession) return; castLockedRef.current = false; setCompleting(false); setQuestion(resumeSession.question); setCategory(resumeSession.category); setMode(resumeSession.mode); setCoins(resumeSession.coins); setCasts(resumeSession.casts); setResumeSession(null); setPhase("casting"); };
   const discardSession = () => { clearStoredSession(); setResumeSession(null); };
   const restartCast = () => { cancelRoll(); clearStoredSession(); setResumeSession(null); setCasts([]); setCoins(["heads", "heads", "heads"]); setAi(null); setAiSource(null); setAnnouncement(isEn ? "The unfinished reading was discarded." : "途中の起卦を破棄しました。"); };
   const place = (cast: CoinCast) => {
+    if (castLockedRef.current || completing || casts.length >= 6) return;
     const next = [...casts, cast]; setCasts(next); playLinePlace();
     setAnnouncement(isEn ? `Toss ${next.length}: ${coinLineLabels[cast.value]} was placed.` : `${next.length}投目、${coinLineLabels[cast.value]}の爻を置きました。`);
-    if (next.length === 6) window.setTimeout(() => { clearStoredSession(); if (casts.some((item) => item.value === 6 || item.value === 9) || cast.value === 6 || cast.value === 9) playChanging(); playComplete(); setAnnouncement(isEn ? "All six lines are complete. Showing the result." : "六本の爻が揃いました。結果を表示します。"); setPhase("result"); }, reduced ? 120 : 700);
+    if (next.length === 6) {
+      castLockedRef.current = true;
+      setCompleting(true);
+      clearStoredSession();
+      completionTimerRef.current = window.setTimeout(() => {
+        if (next.some((item) => item.value === 6 || item.value === 9)) playChanging();
+        playComplete();
+        setAnnouncement(isEn ? "All six lines are complete. Showing the result." : "六本の爻が揃いました。結果を表示します。");
+        setCompleting(false);
+        completionTimerRef.current = null;
+        setPhase("result");
+      }, reduced ? 120 : 700);
+    }
   };
   const roll = () => {
-    if (rolling) return; unlockCoinSound(); setRolling(true); setSettledCoinCount(0); playCoinSpin(); const result = randomCoinCast();
+    if (rolling || completing || castLockedRef.current || casts.length >= 6) return; unlockCoinSound(); setRolling(true); setSettledCoinCount(0); playCoinSpin(); const result = randomCoinCast();
     const stopTimes = reduced ? [60, 90, 120] : [800, 900, 1000];
     rollTimersRef.current = stopTimes.map((delay, index) => window.setTimeout(() => { setCoins((current) => current.map((face, coinIndex) => coinIndex === index ? result.coins[index] : face) as [CoinFace, CoinFace, CoinFace]); setSettledCoinCount(index + 1); playCoinStop(index); }, delay));
     rollTimersRef.current.push(window.setTimeout(() => { setRolling(false); setSettledCoinCount(3); place(result); rollTimersRef.current = []; }, reduced ? 180 : 1400));
   };
-  const toggleCoin = (index: number) => { unlockCoinSound(); playCoinFlip(); setCoins((current) => current.map((face, coinIndex) => coinIndex === index ? (face === "heads" ? "tails" : "heads") : face) as [CoinFace, CoinFace, CoinFace]); };
-  const undoCast = () => { if (mode !== "manual" || rolling || casts.length === 0) return; const removed = casts[casts.length - 1]; setCasts((current) => current.slice(0, -1)); setCoins(removed.coins); playUndo(); setAnnouncement(isEn ? `Toss ${casts.length} was undone.` : `${casts.length}投目を取り消しました。`); };
+  const toggleCoin = (index: number) => { if (rolling || completing || castLockedRef.current || casts.length >= 6) return; unlockCoinSound(); playCoinFlip(); setCoins((current) => current.map((face, coinIndex) => coinIndex === index ? (face === "heads" ? "tails" : "heads") : face) as [CoinFace, CoinFace, CoinFace]); };
+  const undoCast = () => { if (mode !== "manual" || rolling || completing || castLockedRef.current || casts.length === 0) return; const removed = casts[casts.length - 1]; setCasts((current) => current.slice(0, -1)); setCoins(removed.coins); playUndo(); setAnnouncement(isEn ? `Toss ${casts.length} was undone.` : `${casts.length}投目を取り消しました。`); };
   const askAi = async () => {
     if (!reading || !primary || aiBusy) return; setAiBusy(true); setAiStage(0); setAi(null); setAiSource(null); setAiError(null); setAnnouncement(isEn ? "AI is reading the question with the hexagram." : "AIが問いと卦を読み合わせています。"); unlockCoinSound();
     try {
@@ -199,12 +215,12 @@ export default function CoinEnglishApp({ initialQuestion = "" }: { initialQuesti
       </motion.section>}
 
       {phase === "casting" && <motion.section key="casting" className="coin-screen coin-casting" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-        <CoinTopbar label={copy.throwCount(casts.length + 1)} backLabel={copy.backQuestion} onBack={() => setPhase("question")} muted={muted} onMute={toggleMute} disabled={rolling} /><h1 ref={screenTitleRef} tabIndex={-1}>{copy.title}</h1>
-        <div className="coin-tabs" role="tablist" aria-label={copy.methodAria}><button role="tab" aria-selected={mode === "manual"} className={mode === "manual" ? "is-active" : ""} onClick={() => setMode("manual")}>{copy.manual}</button><button role="tab" aria-selected={mode === "auto"} className={mode === "auto" ? "is-active" : ""} onClick={() => setMode("auto")}>{copy.auto}</button></div>
-        <div className="coin-progress"><h2>{copy.makeLine(copy.positions[casts.length])}</h2><p>{mode === "manual" ? copy.manualHelp : copy.autoHelp}</p></div>
-        <div className="coin-cast-stage"><div className="coin-discs">{coins.map((face, index) => <CoinButton key={index} locale={locale} index={index} face={face} flipping={rolling && index >= settledCoinCount} onClick={mode === "manual" ? () => toggleCoin(index) : undefined} />)}</div><div className="coin-sum">{copy.coinSum(coins.filter((coin) => coin === "heads").length, makeCoinCast(coins).value, coinLineLabels[makeCoinCast(coins).value])}</div></div>
+        <CoinTopbar label={copy.throwCount(Math.min(casts.length + 1, 6))} backLabel={copy.backQuestion} onBack={() => setPhase("question")} muted={muted} onMute={toggleMute} disabled={rolling || completing} /><h1 ref={screenTitleRef} tabIndex={-1}>{copy.title}</h1>
+        <div className="coin-tabs" role="tablist" aria-label={copy.methodAria}><button role="tab" aria-selected={mode === "manual"} className={mode === "manual" ? "is-active" : ""} onClick={() => setMode("manual")} disabled={rolling || completing}>{copy.manual}</button><button role="tab" aria-selected={mode === "auto"} className={mode === "auto" ? "is-active" : ""} onClick={() => setMode("auto")} disabled={rolling || completing}>{copy.auto}</button></div>
+        <div className="coin-progress">{completing ? <><h2>All six lines are complete</h2><p>Preparing your reading.</p></> : <><h2>{copy.makeLine(copy.positions[Math.min(casts.length, 5)])}</h2><p>{mode === "manual" ? copy.manualHelp : copy.autoHelp}</p></>}</div>
+        <div className="coin-cast-stage"><div className="coin-discs">{coins.map((face, index) => <CoinButton key={index} locale={locale} index={index} face={face} flipping={rolling && index >= settledCoinCount} onClick={mode === "manual" && !completing ? () => toggleCoin(index) : undefined} />)}</div><div className="coin-sum">{copy.coinSum(coins.filter((coin) => coin === "heads").length, makeCoinCast(coins).value, coinLineLabels[makeCoinCast(coins).value])}</div></div>
         <div className="coin-build"><div className="coin-direction">{copy.direction}</div><HexStack locale={locale} lines={casts.map((cast) => cast.line)} changing={casts.flatMap((cast, index) => cast.value === 6 || cast.value === 9 ? [index] : [])} showEmpty /></div>
-        <div className="coin-cast-actions">{mode === "manual" ? <><button className="coin-primary" onClick={() => place(makeCoinCast(coins))}>{copy.place} <span>→</span></button><button className="coin-undo" onClick={undoCast} disabled={rolling || casts.length === 0}>{copy.undo}</button></> : <button className="coin-primary" onClick={roll} disabled={rolling}>{rolling ? copy.rolling : copy.roll}</button>}</div>
+        {!completing && <div className="coin-cast-actions">{mode === "manual" ? <><button className="coin-primary" onClick={() => place(makeCoinCast(coins))} disabled={casts.length >= 6}>{copy.place} <span>→</span></button><button className="coin-undo" onClick={undoCast} disabled={rolling || casts.length === 0}>{copy.undo}</button></> : <button className="coin-primary" onClick={roll} disabled={rolling || casts.length >= 6}>{rolling ? copy.rolling : copy.roll}</button>}</div>}
       </motion.section>}
 
       {(phase === "result" || phase === "detail") && reading && primary && entry && text && <motion.section key={phase} className={`coin-screen coin-${phase}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>

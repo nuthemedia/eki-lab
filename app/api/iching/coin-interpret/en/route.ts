@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { HEXAGRAMS_BY_NUMBER } from "@/domain/iching/hexagrams";
 import { HEXAGRAM_ENGLISH } from "@/domain/iching/hexagramEnglish";
 import { callIchingLlm, hasOpenAiKey } from "@/lib/ichingLlm";
+import { getCoinInterpretModel } from "@/lib/ichingModels";
 import { checkAndRecordUsage, getIchingUserId } from "@/lib/ichingUsage";
 import {
   buildFallbackCoinInterpretationEn,
@@ -13,7 +14,7 @@ import {
 
 export const runtime = "nodejs";
 
-const MODEL = process.env.OPENAI_ICHING_INTERPRET_MODEL || "gpt-5.6-luna";
+const MODEL = getCoinInterpretModel();
 const LINE_LABELS_EN = ["First Line", "Second Line", "Third Line", "Fourth Line", "Fifth Line", "Top Line"];
 const SCHEMA = {
   type: "object",
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
   const userId = getIchingUserId(request) || crypto.randomUUID();
 
   if (hasOpenAiKey()) {
-    const usage = await checkAndRecordUsage(userId, "interpret");
+    const usage = await checkAndRecordUsage(request, userId, "interpret");
     if (usage.allowed) {
       const entry = HEXAGRAM_ENGLISH[primaryNumber];
       const guidance = guidanceForCategoryEn(primaryNumber, category);

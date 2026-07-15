@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { HEXAGRAMS_BY_NUMBER, LINE_LABELS, linesOfHexagram } from "@/domain/iching/hexagrams";
 import { HEXAGRAM_DICTIONARY } from "@/domain/iching/hexagramDictionary";
+import { checkCoinShareUsage } from "@/lib/ichingUsage";
 
 export const runtime = "edge";
 
@@ -24,9 +25,21 @@ export async function POST(request: Request) {
   const primaryNumber = Number(body.primaryNumber), relatingNumber = Number(body.relatingNumber);
   const primary = HEXAGRAMS_BY_NUMBER[primaryNumber];
   const relating = HEXAGRAMS_BY_NUMBER[relatingNumber] ?? null;
-  const changing = Array.isArray(body.changingLineIndexes) ? body.changingLineIndexes.map(Number).filter(i => i >= 0 && i < 6) : [];
+  const changing = Array.isArray(body.changingLineIndexes)
+    ? [...new Set(body.changingLineIndexes.map(Number).filter(i => Number.isInteger(i) && i >= 0 && i < 6))].sort((a, b) => a - b)
+    : [];
   const question = typeof body.question === "string" ? body.question.trim().slice(0, 200) : "";
   if (!primary) return new Response("invalid payload", { status: 400 });
+  const usage = await checkCoinShareUsage(request);
+  if (!usage.allowed) {
+    if (usage.reason === "infrastructure") {
+      return new Response("share service unavailable", { status: 503 });
+    }
+    return new Response("rate limit exceeded", {
+      status: 429,
+      headers: { "Retry-After": String(usage.retryAfter ?? 600) },
+    });
+  }
   const entry = HEXAGRAM_DICTIONARY[primaryNumber];
   return new ImageResponse(<div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "#F7F3EA", color: "#1F2320", padding: "92px 76px", fontFamily: "sans-serif", border: "8px solid #B58A42" }}>
     <div style={{ display: "flex", justifyContent: "space-between", color: "#6D6A61", fontSize: 26, letterSpacing: 5 }}><span>コイン易占い</span><span>AWAI Commons</span></div>

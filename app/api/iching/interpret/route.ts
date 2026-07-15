@@ -7,11 +7,12 @@ import {
 import { HEXAGRAM_TEXTS } from "@/domain/iching/hexagramTexts";
 import type { Interpretation } from "@/domain/iching/types";
 import { callIchingLlm, hasOpenAiKey } from "@/lib/ichingLlm";
+import { getIchingInterpretModel } from "@/lib/ichingModels";
 import { checkAndRecordUsage, getIchingUserId } from "@/lib/ichingUsage";
 
 export const runtime = "nodejs";
 
-const MODEL = process.env.OPENAI_ICHING_INTERPRET_MODEL || "gpt-5-mini";
+const MODEL = getIchingInterpretModel();
 
 const SYSTEM_PROMPT = `あなたは易占いアプリの解釈アシスタントです。
 
@@ -157,7 +158,7 @@ export async function POST(request: Request) {
   let remaining: number | null = null;
 
   if (hasOpenAiKey()) {
-    const usage = await checkAndRecordUsage(userId, "interpret");
+    const usage = await checkAndRecordUsage(request, userId, "interpret");
     remaining = usage.remaining;
     if (usage.allowed) {
       const primary = HEXAGRAMS_BY_NUMBER[primaryNumber];

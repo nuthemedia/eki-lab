@@ -29,7 +29,8 @@ export function IchingCardApp() {
   const [content, setContent] = useState<CardContent | null>(null);
 
   useEffect(() => {
-    setQuestions(pickCardQuestions(5));
+    const timer = window.setTimeout(() => setQuestions(pickCardQuestions(5)), 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const handlePick = (question: CardQuestion) => {

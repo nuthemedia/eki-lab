@@ -8,7 +8,7 @@
 - `castDice()`: 下卦 1/8・上卦 1/8・変爻 1/6。変爻は常に1本
 - どちらも `HexagramResult` を返す。乱数を使うため描画中に呼ばずイベントハンドラ内で呼ぶ
 
-## LLM API(使うのはこの2箇所のみ)
+## LLM API
 
 **POST `/api/iching/refine`** — 問い整理(モデル: `OPENAI_ICHING_REFINE_MODEL` || gpt-5-nano)
 - 入力 `{ rawInput(≤500字), clarifyingAnswer? }` → `{ result: RefineResult, source: "llm"|"fallback", remaining }`
@@ -18,7 +18,12 @@
 - 入力 `{ rawInput, finalInquiry, primaryNumber, changingLineIndexes, relatingNumber }`。卦辞・爻辞は**サーバー側で** `HEXAGRAM_TEXTS` から引いてプロンプトに入れる(改ざん防止・トークン節約)
 - 出力 `{ interpretation: Interpretation, source, remaining }`。`Interpretation` はセクション固定(answer=問いへの最終回答 / essence / primaryReading / changingReading / relatingReading / advice / caution)。answer は問いが求める選択への方向を示す3〜5文(断定はしない)。旧保存データには answer が無いことがあり、表示側は無ければ非表示にする
 
-共通: `lib/ichingLlm.ts`(fetch + json_schema + タイムアウト + リトライ2回、gpt-5 系は reasoning effort minimal)。クォータは `lib/ichingUsage.ts`(クッキー `iching_user_id`、端末別・種別ごとに日次10回、一時ファイルストア)。**キー未設定・失敗・クォータ超過はすべてテンプレートにフォールバック**(refine=汎用候補、interpret=固定の現代語訳から組み立て)。
+**POST `/api/iching/coin-interpret` / `/api/iching/coin-interpret/en`** — Coin日本語・英語解釈(モデル: `OPENAI_COIN_INTERPRET_MODEL` || gpt-5.6-luna)
+- Coin固有の短い構造化回答を返す。カテゴリ、本卦、変爻、之卦をプロンプトへ渡し、固定データのフォールバックを常に用意する
+
+共通: `lib/ichingLlm.ts`(fetch + json_schema + タイムアウト + リトライ)。クォータは `lib/ichingUsage.ts` と Upstash Redisで原子的に記録する。端末・種別ごとに日次10回、IPごとに毎時60回、全体で日次500回。IPは保存前にハッシュ化する。ローカル・テストはインメモリ、本番でRedis未設定・障害時はAIを呼ばない。**キー未設定・失敗・クォータ超過はすべてテンプレートにフォールバック**する。
+
+`POST /api/iching/coin-share` はLLMを使わない画像APIだが、IPごとに10分30回へ制限する。超過は429、本番Redis障害時は503を返す。
 
 ## 保存・履歴 (`lib/ichingHistory.ts`)
 

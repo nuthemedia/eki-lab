@@ -25,15 +25,18 @@ export function SharePanel({ content }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const probe = new File([""], "probe.png", { type: "image/png" });
-      setCanShareFiles(
-        typeof navigator.canShare === "function" &&
-          navigator.canShare({ files: [probe] }),
-      );
-    } catch {
-      setCanShareFiles(false);
-    }
+    const timer = window.setTimeout(() => {
+      try {
+        const probe = new File([""], "probe.png", { type: "image/png" });
+        setCanShareFiles(
+          typeof navigator.canShare === "function" &&
+            navigator.canShare({ files: [probe] }),
+        );
+      } catch {
+        setCanShareFiles(false);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const shareImage = async () => {

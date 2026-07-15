@@ -105,7 +105,7 @@ function ReadingPair({ casts }: { casts: CoinCast[] }) {
   const relating = reading.changingLineIndexes.length ? hexagramFromLines(reading.relatingLines)! : null;
   return <div className="coin-pair">
     <div className="coin-pair-col"><small>本卦　第{primary.number}卦</small><h2>{primary.name}</h2><HexStack lines={reading.primaryLines} changing={reading.changingLineIndexes} /></div>
-    {relating ? <><span className="coin-arrow">→</span><div className="coin-pair-col"><small>之卦　第{relating.number}卦</small><h2>{relating.name}</h2><HexStack lines={reading.relatingLines} /></div></> : <div className="coin-no-change"><b>変爻なし</b><span>之卦なし</span></div>}
+    {relating ? <><span className="coin-arrow">→</span><div className="coin-pair-col"><small>之卦　第{relating.number}卦</small><h2>{relating.name}</h2><HexStack lines={reading.relatingLines} /></div></> : <div className="coin-no-change"><b>之卦なし</b></div>}
   </div>;
 }
 
@@ -118,6 +118,7 @@ export default function CoinApp() {
   const [coins, setCoins] = useState<[CoinFace, CoinFace, CoinFace]>(["heads", "heads", "heads"]);
   const [casts, setCasts] = useState<CoinCast[]>([]);
   const [rolling, setRolling] = useState(false);
+  const [completing, setCompleting] = useState(false);
   const [settledCoinCount, setSettledCoinCount] = useState(3);
   const [muted, setMuted] = useState(false);
   const [ai, setAi] = useState<AiReading | null>(null);
@@ -129,6 +130,8 @@ export default function CoinApp() {
   const [announcement, setAnnouncement] = useState("");
   const screenTitleRef = useRef<HTMLHeadingElement>(null);
   const rollTimersRef = useRef<number[]>([]);
+  const completionTimerRef = useRef<number | null>(null);
+  const castLockedRef = useRef(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -140,6 +143,7 @@ export default function CoinApp() {
   }, []);
   useEffect(() => () => {
     rollTimersRef.current.forEach(window.clearTimeout);
+    if (completionTimerRef.current !== null) window.clearTimeout(completionTimerRef.current);
   }, []);
   useEffect(() => {
     if (phase !== "casting" || !question.trim() || casts.length === 0 || casts.length >= 6) return;
@@ -170,7 +174,11 @@ export default function CoinApp() {
   const cancelRoll = () => {
     rollTimersRef.current.forEach(window.clearTimeout);
     rollTimersRef.current = [];
+    if (completionTimerRef.current !== null) window.clearTimeout(completionTimerRef.current);
+    completionTimerRef.current = null;
+    castLockedRef.current = false;
     setRolling(false);
+    setCompleting(false);
     setSettledCoinCount(3);
   };
 
@@ -185,11 +193,11 @@ export default function CoinApp() {
     if (!question.trim()) return;
     unlockCoinSound();
     if (hasInProgressCast) { setPhase("casting"); return; }
-    playStart(); clearStoredSession(); setResumeSession(null); setCasts([]); setAi(null); setAiSource(null); setPhase("casting");
+    castLockedRef.current = false; setCompleting(false); playStart(); clearStoredSession(); setResumeSession(null); setCasts([]); setAi(null); setAiSource(null); setPhase("casting");
   };
   const resume = () => {
     if (!resumeSession) return;
-    setQuestion(resumeSession.question); setCategory(resumeSession.category); setMode(resumeSession.mode);
+    castLockedRef.current = false; setCompleting(false); setQuestion(resumeSession.question); setCategory(resumeSession.category); setMode(resumeSession.mode);
     setCoins(resumeSession.coins); setCasts(resumeSession.casts); setResumeSession(null); setPhase("casting");
   };
   const discardSession = () => { clearStoredSession(); setResumeSession(null); };
@@ -199,12 +207,25 @@ export default function CoinApp() {
   const reset = () => { cancelRoll(); clearStoredSession(); setResumeSession(null); setQuestion(""); setCasts([]); setAi(null); setAiSource(null); setAiError(null); setAnnouncement(""); setPhase("question"); };
 
   const place = (cast: CoinCast) => {
+    if (castLockedRef.current || completing || casts.length >= 6) return;
     const next = [...casts, cast]; setCasts(next); playLinePlace();
     setAnnouncement(`${next.length}投目、${COIN_LINE_LABELS[cast.value]}の爻を置きました。`);
-    if (next.length === 6) { clearStoredSession(); window.setTimeout(() => { if (casts.some(c => c.value === 6 || c.value === 9) || cast.value === 6 || cast.value === 9) playChanging(); playComplete(); setAnnouncement("六本の爻が揃いました。結果を表示します。"); setPhase("result"); }, reduced ? 120 : 700); }
+    if (next.length === 6) {
+      castLockedRef.current = true;
+      setCompleting(true);
+      clearStoredSession();
+      completionTimerRef.current = window.setTimeout(() => {
+        if (next.some(c => c.value === 6 || c.value === 9)) playChanging();
+        playComplete();
+        setAnnouncement("六本の爻が揃いました。結果を表示します。");
+        setCompleting(false);
+        completionTimerRef.current = null;
+        setPhase("result");
+      }, reduced ? 120 : 700);
+    }
   };
   const roll = () => {
-    if (rolling) return;
+    if (rolling || completing || castLockedRef.current || casts.length >= 6) return;
     unlockCoinSound(); setRolling(true); setSettledCoinCount(0); playCoinSpin();
     const result = randomCoinCast();
     const stopTimes = reduced ? [60, 90, 120] : [800, 900, 1000];
@@ -218,10 +239,11 @@ export default function CoinApp() {
     }, reduced ? 180 : 1400));
   };
   const toggleCoin = (index: number) => {
+    if (rolling || completing || castLockedRef.current || casts.length >= 6) return;
     unlockCoinSound(); playCoinFlip(); setCoins(current => current.map((face, i) => i === index ? (face === "heads" ? "tails" : "heads") : face) as [CoinFace, CoinFace, CoinFace]);
   };
   const undoCast = () => {
-    if (mode !== "manual" || rolling || casts.length === 0) return;
+    if (mode !== "manual" || rolling || completing || castLockedRef.current || casts.length === 0) return;
     const removed = casts[casts.length - 1];
     setCasts(current => current.slice(0, -1));
     setCoins(removed.coins);
@@ -253,12 +275,12 @@ export default function CoinApp() {
       </motion.section>}
 
       {phase === "casting" && <motion.section key="casting" className="coin-screen coin-casting" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-        <CoinTopbar label={`${casts.length + 1}投目 / 6`} backLabel="問いに戻る" onBack={() => setPhase("question")} muted={muted} onMute={toggleMute} disabled={rolling} /><h1 ref={screenTitleRef} tabIndex={-1}>コイン易占い</h1>
-        <div className="coin-tabs" role="tablist" aria-label="起卦方法"><button role="tab" aria-selected={mode === "manual"} className={mode === "manual" ? "is-active" : ""} onClick={() => setMode("manual")}>コインの結果を入力</button><button role="tab" aria-selected={mode === "auto"} className={mode === "auto" ? "is-active" : ""} onClick={() => setMode("auto")}>コインが手元にない人はこちら</button></div>
-        <div className="coin-progress"><h2>{POSITION_NAMES[casts.length]}の爻を作ります</h2><p>{mode === "manual" ? "手元のコインを三枚投げて、出た表裏を入力してください。" : "アプリ内で三枚のコインを投げます。"}</p></div>
-        <div className="coin-cast-stage"><div className="coin-discs">{coins.map((face, index) => <CoinButton key={index} index={index} face={face} flipping={rolling && index >= settledCoinCount} onClick={mode === "manual" ? () => toggleCoin(index) : undefined} />)}</div><div className="coin-sum">表{coins.filter(c => c === "heads").length}枚 = {makeCoinCast(coins).value} = {COIN_LINE_LABELS[makeCoinCast(coins).value]}</div></div>
+        <CoinTopbar label={`${Math.min(casts.length + 1, 6)}投目 / 6`} backLabel="問いに戻る" onBack={() => setPhase("question")} muted={muted} onMute={toggleMute} disabled={rolling || completing} /><h1 ref={screenTitleRef} tabIndex={-1}>コイン易占い</h1>
+        <div className="coin-tabs" role="tablist" aria-label="起卦方法"><button role="tab" aria-selected={mode === "manual"} className={mode === "manual" ? "is-active" : ""} onClick={() => setMode("manual")} disabled={rolling || completing}>コインの結果を入力</button><button role="tab" aria-selected={mode === "auto"} className={mode === "auto" ? "is-active" : ""} onClick={() => setMode("auto")} disabled={rolling || completing}>コインが手元にない人はこちら</button></div>
+        <div className="coin-progress">{completing ? <><h2>六本の爻が揃いました</h2><p>結果を整えています。</p></> : <><h2>{POSITION_NAMES[Math.min(casts.length, 5)]}の爻を作ります</h2><p>{mode === "manual" ? "手元のコインを三枚投げて、出た表裏を入力してください。" : "アプリ内で三枚のコインを投げます。"}</p></>}</div>
+        <div className="coin-cast-stage"><div className="coin-discs">{coins.map((face, index) => <CoinButton key={index} index={index} face={face} flipping={rolling && index >= settledCoinCount} onClick={mode === "manual" && !completing ? () => toggleCoin(index) : undefined} />)}</div><div className="coin-sum">表{coins.filter(c => c === "heads").length}枚 = {makeCoinCast(coins).value} = {COIN_LINE_LABELS[makeCoinCast(coins).value]}</div></div>
         <div className="coin-build"><div className="coin-direction">上<br />↑<br />下から積む<br />↓<br />下</div><HexStack lines={casts.map(c => c.line)} changing={casts.flatMap((c, i) => c.value === 6 || c.value === 9 ? [i] : [])} showEmpty /></div>
-        <div className="coin-cast-actions">{mode === "manual" ? <><button className="coin-primary" onClick={() => place(makeCoinCast(coins))}>この結果で置く <span>→</span></button><button className="coin-undo" onClick={undoCast} disabled={rolling || casts.length === 0}>直前の一投を戻す</button></> : <button className="coin-primary" onClick={roll} disabled={rolling}>{rolling ? "投げています…" : "コインを投げる"}</button>}</div>
+        {!completing && <div className="coin-cast-actions">{mode === "manual" ? <><button className="coin-primary" onClick={() => place(makeCoinCast(coins))} disabled={casts.length >= 6}>この結果で置く <span>→</span></button><button className="coin-undo" onClick={undoCast} disabled={rolling || casts.length === 0}>直前の一投を戻す</button></> : <button className="coin-primary" onClick={roll} disabled={rolling || casts.length >= 6}>{rolling ? "投げています…" : "コインを投げる"}</button>}</div>}
       </motion.section>}
 
       {(phase === "result" || phase === "detail") && reading && primary && dictionary && text && <motion.section key={phase} className={`coin-screen coin-${phase}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
