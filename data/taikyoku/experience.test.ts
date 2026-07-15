@@ -3,9 +3,7 @@ import {
   AUTO_DIALOG_AT_MS,
   AUTO_DURATION_MS,
   AUTO_FIELD_AT_MS,
-  RESTART_SWIPE_DISTANCE,
   AUTO_STACK_AT_MS,
-  isRestartSwipe,
   sampleAutoTimeline,
 } from "./experience";
 
@@ -26,17 +24,5 @@ describe("taikyoku AUTO timeline", () => {
   it("clamps out-of-range elapsed values", () => {
     expect(sampleAutoTimeline(-1).progress).toBe(0);
     expect(sampleAutoTimeline(AUTO_DURATION_MS + 1).complete).toBe(true);
-  });
-});
-
-describe("taikyoku restart swipe", () => {
-  it("accepts a deliberate downward swipe", () => {
-    expect(isRestartSwipe(12, RESTART_SWIPE_DISTANCE)).toBe(true);
-  });
-
-  it("rejects short, upward, and mostly horizontal gestures", () => {
-    expect(isRestartSwipe(0, RESTART_SWIPE_DISTANCE - 1)).toBe(false);
-    expect(isRestartSwipe(0, -RESTART_SWIPE_DISTANCE)).toBe(false);
-    expect(isRestartSwipe(80, RESTART_SWIPE_DISTANCE)).toBe(false);
   });
 });

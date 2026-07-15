@@ -23,7 +23,7 @@ export const CAMERA_KEYFRAMES: readonly CameraKeyframe[] = [
   { progress: 0.74, position: [-1.4, 0.8, -13.5], target: [0, 0, -18], fov: 46 },
   { progress: 0.82, position: [1.4, 1, -14.5], target: [0, 0, -19], fov: 50 },
   { progress: 0.9, position: [0, 0, -21], target: [0, 0, -27], fov: 45 },
-  { progress: 1, position: [0, 2.6, -24], target: [0, 0, -34], fov: 58 },
+  { progress: 1, position: [0, 0, -21], target: [0, 0, -27], fov: 45 },
 ] as const;
 
 function clamp01(value: number): number {

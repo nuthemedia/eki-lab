@@ -12,6 +12,7 @@ type Props = {
   reducedMotion: boolean;
   hitSize?: readonly [number, number];
   targetRotationZ?: number;
+  onRotationZ?: (rotationZ: number) => void;
 };
 
 /** A common, restrained drag/inertia surface for the four- and eight-form displays. */
@@ -22,6 +23,7 @@ export default function InteractiveStageGroup({
   reducedMotion,
   hitSize = [3.2, 3.2],
   targetRotationZ = 0,
+  onRotationZ,
 }: Props) {
   const group = useRef<THREE.Group>(null);
   const start = useRef<{ x: number; y: number } | null>(null);
@@ -54,6 +56,7 @@ export default function InteractiveStageGroup({
       targetRotationZ,
       reducedMotion ? 0.34 : 0.105,
     );
+    onRotationZ?.(current.rotation.z);
     if (
       start.current ||
       Math.abs(current.rotation.x) > 0.002 ||

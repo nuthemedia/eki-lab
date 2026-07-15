@@ -46,6 +46,7 @@ describe("taikyoku camera", () => {
 
   it("is deterministic in both scroll directions", () => {
     expect(sampleCamera(0.47)).toEqual(sampleCamera(0.47));
+    expect(sampleCamera(1)).toEqual(sampleCamera(0.9));
     expect(stageIndexAt(0.82)).toBe(3);
     expect(stageIndexAt(0.83)).toBe(4);
   });

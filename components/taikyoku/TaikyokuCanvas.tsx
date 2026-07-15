@@ -462,6 +462,8 @@ function TrigramRing({
   selectedTrigram: number;
   onSelect: (index: number) => void;
 }) {
+  const itemRefs = useRef<(THREE.Group | null)[]>([]);
+
   return (
     <ProgressReveal progress={progress} range={[0.52, 0.66, 0.81, 0.88]}>
     <InteractiveStageGroup
@@ -470,6 +472,11 @@ function TrigramRing({
       reducedMotion={reducedMotion}
       hitSize={[3.2, 3.4]}
       targetRotationZ={selectedTrigram * Math.PI / 4}
+      onRotationZ={(rotationZ) => {
+        itemRefs.current.forEach((item) => {
+          if (item) item.rotation.z = -rotationZ;
+        });
+      }}
     >
       {RING_POSITIONS.map((position, index) => {
         const selected = selectedTrigram === index;
@@ -479,15 +486,18 @@ function TrigramRing({
           position[2] + (selected ? 0.16 : 0),
         ];
         return (
-          <group key={index}>
+          <group
+            key={index}
+            ref={(node) => { itemRefs.current[index] = node; }}
+            position={displayPosition}
+          >
             <LineForms
               forms={[TRIGRAMS[index].lines]}
-              positions={[displayPosition]}
+              positions={[[0, 0, 0]]}
               scale={selected ? 0.44 : 0.34}
               color={selected ? "#f2dca5" : "#a99566"}
             />
             <mesh
-              position={displayPosition}
               onClick={(event) => {
                 if (activeStage !== 3 || event.delta > 5) return;
                 event.stopPropagation();

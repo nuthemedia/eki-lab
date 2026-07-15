@@ -23,7 +23,6 @@ import {
 import { stageIndexAt } from "@/data/taikyoku/camera";
 import {
   AUTO_DURATION_MS,
-  isRestartSwipe,
   sampleAutoTimeline,
   type AutoPlaybackState,
   type AutoStopReason,
@@ -82,13 +81,6 @@ export default function TaikyokuApp() {
   const openingActionRef = useRef<HTMLButtonElement>(null);
   const dialogReturnFocusOverrideRef = useRef<HTMLElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
-  const restartSwipeArmedRef = useRef(false);
-  const restartSwipeStartRef = useRef<{
-    identifier: number;
-    x: number;
-    y: number;
-  } | null>(null);
-  const restartExperienceRef = useRef<() => void>(() => undefined);
   const reducedMotion = useReducedMotion() ?? false;
   const [activeStage, setActiveStage] = useState(0);
   const [pulseKey, setPulseKey] = useState(0);
@@ -327,8 +319,6 @@ export default function TaikyokuApp() {
     autoStartedAtRef.current = 0;
     autoStateRef.current = "idle";
     autoStopReasonRef.current = null;
-    restartSwipeArmedRef.current = false;
-    restartSwipeStartRef.current = null;
     if (closingOpen) {
       dialogReturnFocusOverrideRef.current = openingActionRef.current;
     }
@@ -349,66 +339,6 @@ export default function TaikyokuApp() {
       if (!closingOpen) openingActionRef.current?.focus({ preventScroll: true });
     });
   };
-
-  useEffect(() => {
-    restartExperienceRef.current = restartExperience;
-  });
-
-  useEffect(() => {
-    if (hexagramPhase !== "stacked") {
-      restartSwipeArmedRef.current = false;
-      restartSwipeStartRef.current = null;
-    }
-  }, [hexagramPhase]);
-
-  useEffect(() => {
-    const handleTouchStart = (event: TouchEvent) => {
-      if (!restartSwipeArmedRef.current || event.touches.length !== 1) return;
-      const target = event.target;
-      if (
-        target instanceof Element &&
-        target.closest("button, a, input, select, textarea, [role='button']")
-      ) {
-        restartSwipeStartRef.current = null;
-        return;
-      }
-      const touch = event.touches[0];
-      restartSwipeStartRef.current = {
-        identifier: touch.identifier,
-        x: touch.clientX,
-        y: touch.clientY,
-      };
-    };
-
-    const handleTouchEnd = (event: TouchEvent) => {
-      const start = restartSwipeStartRef.current;
-      if (!restartSwipeArmedRef.current || !start) return;
-      const touch = Array.from(event.changedTouches).find(
-        (candidate) => candidate.identifier === start.identifier,
-      );
-      restartSwipeStartRef.current = null;
-      if (!touch) return;
-      const deltaX = touch.clientX - start.x;
-      const deltaY = touch.clientY - start.y;
-      if (isRestartSwipe(deltaX, deltaY)) {
-        restartSwipeArmedRef.current = false;
-        restartExperienceRef.current();
-      }
-    };
-
-    const handleTouchCancel = () => {
-      restartSwipeStartRef.current = null;
-    };
-
-    window.addEventListener("touchstart", handleTouchStart, { passive: true });
-    window.addEventListener("touchend", handleTouchEnd, { passive: true });
-    window.addEventListener("touchcancel", handleTouchCancel, { passive: true });
-    return () => {
-      window.removeEventListener("touchstart", handleTouchStart);
-      window.removeEventListener("touchend", handleTouchEnd);
-      window.removeEventListener("touchcancel", handleTouchCancel);
-    };
-  }, []);
 
   const pulseAndContinue = () => {
     setPulseKey((key) => key + 1);
@@ -437,15 +367,11 @@ export default function TaikyokuApp() {
   };
 
   const revealHexagramField = () => {
-    restartSwipeArmedRef.current = false;
-    restartSwipeStartRef.current = null;
     setSelectedHexagramPanel(null);
     setHexagramPhase("field");
   };
 
   const returnFromHexagramField = () => {
-    restartSwipeArmedRef.current = true;
-    restartSwipeStartRef.current = null;
     setHexagramPhase("stacked");
     setSelectedHexagramPanel(null);
   };
@@ -651,10 +577,9 @@ export default function TaikyokuApp() {
             <h1>易有太極</h1>
             <p className="tk-opening-passage">
               <span>易に太極あり。</span>
-              <span>これ両儀を生じ、</span>
-              <span>両儀は四象を生じ、</span>
-              <span>四象は八卦を生ず。</span>
             </p>
+            <span className="tk-generation-number">生成数　1</span>
+            <p className="tk-opening-meaning">全ての変化のはじまり</p>
           </header>
           <div className="tk-stage-copy is-bottom">
             <button
@@ -681,7 +606,7 @@ export default function TaikyokuApp() {
           <div className="tk-stage-copy is-top">
             <h2>両儀</h2>
             <span className="tk-generation-number">生成数　二</span>
-            <p>ひとつの中に、二つの働き。</p>
+            <p>陰と陽、ひとつの中に二つの働き。</p>
           </div>
           <div className="tk-stage-copy is-bottom">
             <p className="tk-gesture-hint">左右に触れて、陰陽を動かす</p>
@@ -714,7 +639,7 @@ export default function TaikyokuApp() {
           <div className="tk-stage-copy is-top">
             <h2>四象</h2>
             <span className="tk-generation-number">生成数　四　／　2²</span>
-            <p>二つの働きが、もう一段ひらく。</p>
+            <p>二つの働きが、四つの象をつくる</p>
           </div>
           <div className="tk-stage-copy is-bottom">
             <p className="tk-gesture-hint">触れて、四つの相をひらく</p>
@@ -828,13 +753,17 @@ export default function TaikyokuApp() {
                 <path d="M5 12h14m-5-5 5 5-5 5" />
               </svg>
             </a>
-            <button type="button" className="tk-replay" onClick={restartExperience}>
-              はじめから
-              <svg viewBox="0 0 24 24" aria-hidden>
-                <path d="M19 8a8 8 0 1 0 1 6M19 4v4h-4" />
-              </svg>
-            </button>
           </div>
+          <button
+            type="button"
+            className="tk-replay tk-hexagram-replay"
+            onClick={restartExperience}
+          >
+            はじめから
+            <svg viewBox="0 0 24 24" aria-hidden>
+              <path d="M19 8a8 8 0 1 0 1 6M19 4v4h-4" />
+            </svg>
+          </button>
         </div>
       </section>
     </main>

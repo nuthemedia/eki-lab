@@ -5,7 +5,6 @@ export const AUTO_PROGRESS_DURATION_MS = 39_000;
 export const AUTO_STACK_AT_MS = 39_000;
 export const AUTO_FIELD_AT_MS = 44_000;
 export const AUTO_DIALOG_AT_MS = 48_000;
-export const RESTART_SWIPE_DISTANCE = 72;
 
 export type AutoPlaybackState = "idle" | "playing" | "paused";
 export type AutoStopReason = "user" | "visibility" | "complete" | null;
@@ -38,12 +37,4 @@ export function sampleAutoTimeline(elapsedMs: number): AutoTimelineSample {
     dialogOpen: elapsed >= AUTO_DIALOG_AT_MS,
     complete: elapsed >= AUTO_DURATION_MS,
   };
-}
-
-/** A deliberate downward touch gesture after leaving the hexagram field. */
-export function isRestartSwipe(deltaX: number, deltaY: number) {
-  return (
-    deltaY >= RESTART_SWIPE_DISTANCE &&
-    deltaY > Math.abs(deltaX) * 1.25
-  );
 }

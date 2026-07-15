@@ -138,6 +138,23 @@
   letter-spacing: 0.1em;
 }
 
+.tk-opening-copy p.tk-opening-passage {
+  color: var(--tk-ink);
+  font-size: clamp(16px, 4.5vw, 20px);
+  line-height: 1.65;
+}
+
+.tk-opening-copy .tk-generation-number {
+  margin-top: 14px;
+}
+
+.tk-opening-copy p.tk-opening-meaning {
+  margin-top: 7px;
+  color: var(--tk-ink);
+  font-size: clamp(15px, 4vw, 18px);
+  line-height: 1.7;
+}
+
 .tk-stage-copy {
   text-align: center;
 }
@@ -629,6 +646,19 @@
   pointer-events: none;
 }
 
+.is-hexagrams .tk-stage-copy.is-ending {
+  bottom: max(142px, calc(env(safe-area-inset-bottom) + 132px));
+}
+
+.tk-hexagram-replay {
+  position: absolute;
+  left: 50%;
+  bottom: max(74px, calc(env(safe-area-inset-bottom) + 66px));
+  z-index: 7;
+  margin: 0;
+  transform: translateX(-50%);
+}
+
 .tk-field-back {
   position: fixed;
   top: max(18px, calc(env(safe-area-inset-top) + 10px));
@@ -686,6 +716,7 @@
 
 .tk-root.is-field-open .tk-sound-toggle,
 .tk-root.is-field-open .tk-progress,
+.tk-root.is-field-open .tk-hexagram-replay,
 .tk-root.is-field-open .is-hexagrams .tk-stage-copy {
   opacity: 0;
   pointer-events: none;
@@ -1087,6 +1118,16 @@
     margin-top: 12px;
     font-size: 10px;
     line-height: 1.6;
+  }
+
+  .tk-opening-copy p.tk-opening-passage {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .tk-opening-copy p.tk-opening-meaning {
+    margin-top: 5px;
+    font-size: 14px;
   }
 
   .tk-stage-copy h2 {
