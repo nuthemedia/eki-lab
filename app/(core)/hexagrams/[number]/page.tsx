@@ -43,6 +43,10 @@ export async function generateMetadata({ params }: HexagramPageProps): Promise<M
     alternates: {
       canonical: `/hexagrams/${n}`,
     },
+    robots: {
+      index: false,
+      follow: true,
+    },
     openGraph: {
       title,
       description,

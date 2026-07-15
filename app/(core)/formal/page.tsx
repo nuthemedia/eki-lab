@@ -11,6 +11,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/formal",
   },
+  robots: {
+    index: false,
+    follow: true,
+  },
 };
 
 export default function FormalModePage() {

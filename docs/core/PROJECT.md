@@ -2,7 +2,9 @@
 
 ユーザーの曖昧な悩みを、易が答えられる「問い」へ整え、その問いに対して卦を立て、現代の言葉で読み解くアプリ。
 
-Route: `/`(トップ=サービス一覧)、`/ask`(メインフロー)、`/formal`・`/dice`(問いなしのクイック立卦)、`/hexagrams`・`/hexagrams/[number]`(64卦AI辞典)、`/card`・`/card/r/[code]`(卦カード=ライト入口+SNS共有)
+Route: `/ask`(メインフロー)、`/formal`・`/dice`(問いなしのクイック立卦)、`/hexagrams`・`/hexagrams/[number]`(64卦AI辞典)、`/card`・`/card/r/[code]`(卦カード=ライト入口+SNS共有)
+
+`/`はAWAI Commonsの紹介ページであり、この母体機能の入口ではない。母体ルートは削除せず直接URLで利用できる状態を維持するが、トップ導線・sitemap・検索結果からは外す(`noindex, follow`)。公開プロダクトはTaikyoku・Hakke・コイン易。
 
 ## Purpose
 

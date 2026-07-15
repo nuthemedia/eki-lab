@@ -28,6 +28,8 @@ Likely implementation paths (in addition to the above):
 
 Notes:
 
+- `/` is the AWAI Commons brand page. It links only to Taikyoku, Hakke, and Coin I Ching. Do not restore public links to `/ask`, `/formal`, `/dice`, `/hexagrams`, or `/card`.
+- Core routes remain directly accessible but are intentionally absent from the public sitemap and use `noindex, follow`.
 - The main flow at `/ask` is: worry input → LLM question refinement → inquiry confirmation → casting → LLM interpretation → save. LLM calls are limited to those two API routes.
 - LLM is OpenAI via the Responses API. Env: `OPENAI_API_KEY` (required for LLM output), optional `OPENAI_ICHING_REFINE_MODEL` (default gpt-5-nano) and `OPENAI_ICHING_INTERPRET_MODEL` (default gpt-5-mini). **Without a key, everything falls back to templates and the flow must still complete** — preserve this property when changing the routes.
 - Casting logic is real (`domain/iching/cast.ts`): yarrow probabilities for formal mode, uniform dice for dice mode. Call it only inside event handlers (hydration safety).
@@ -57,6 +59,7 @@ Verification:
 - `curl -I http://127.0.0.1:3000/card` (200); `/card/r/12-31-4` (200); `/card/r/999-99-9` (404)
 - `curl -I "http://127.0.0.1:3000/api/card-image?code=12-31-4"` (200 image/png) and `/card/r/12-31-4/opengraph-image` (200)
 - Walk `/card` at 375px: five candidates → shuffle → pick → short casting animation → card → share panel (save image, X link, copy link) → CTA to `/ask`
-- Open `/` on a mobile-width viewport (375px): top page shows 3 service cards (ask / hexagrams / card) + quick-mode row. Open `/ask` and walk the flow: worry input → candidates → confirm → mode select → casting animation → interpretation sections → save → history re-read. Quick modes at `/formal` and `/dice` still play standalone with playback controls.
+- Open `/` on a mobile-width viewport (375px): top page shows the wheel and 3 public product cards (Taikyoku / Hakke / Coin I Ching), with no links to the core routes. Open `/ask` directly and walk the flow: worry input → candidates → confirm → mode select → casting animation → interpretation sections → save → history re-read. Quick modes at `/formal` and `/dice` still play standalone with playback controls.
+- Verify `/sitemap.xml` contains only `/`, `/taikyoku`, `/hakke`, `/coin`, and `/coin/en`. Verify every core HTML page emits `noindex, follow` while remaining directly accessible.
 
 Use `npm run dev` first if the local server is not already running.

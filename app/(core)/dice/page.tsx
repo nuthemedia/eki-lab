@@ -11,6 +11,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/dice",
   },
+  robots: {
+    index: false,
+    follow: true,
+  },
 };
 
 export default function DiceModePage() {

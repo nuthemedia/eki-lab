@@ -16,9 +16,12 @@
 
 ## いま入っているもの
 
-- `/` — eki-lab 本体「易のかたち」。問い、立卦、64卦辞典、卦カードへの入口。
-- `/hakke` — 追加の八卦学習体験。仕様は `docs/apps/hakke/`。
-- `domain/hexagrams.ts` — 八卦・64卦の共有データ。hakke からも読み取り専用で参照する。
+- `/` — AWAI Commonsの紹介ページ。公開プロダクトとしてTaikyoku・Hakke・コイン易の3つだけを案内する。
+- `/taikyoku` — 太極から六十四卦への生成構造を触れて学ぶ3D体験。仕様は `docs/apps/taikyoku/`。
+- `/hakke` — 八卦をつくって覚える学習体験。仕様は `docs/apps/hakke/`。
+- `/coin`・`/coin/en` — コイン易占いの日本語版・英語版。
+- `/ask`・`/formal`・`/dice`・`/hexagrams`・`/card` — 機能は維持するが、公開導線と検索対象から外した直接アクセス用の母体機能。
+- `domain/iching/hexagrams.ts` — 八卦・64卦の共有データ。各体験から読み取り専用で参照する。
 
 ## 分割方針
 

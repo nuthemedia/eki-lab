@@ -12,6 +12,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/card",
   },
+  robots: {
+    index: false,
+    follow: true,
+  },
   openGraph: {
     title,
     description,

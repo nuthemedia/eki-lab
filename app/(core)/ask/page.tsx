@@ -12,6 +12,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/ask",
   },
+  robots: {
+    index: false,
+    follow: true,
+  },
   openGraph: {
     title,
     description,

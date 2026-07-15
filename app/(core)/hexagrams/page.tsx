@@ -14,6 +14,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/hexagrams",
   },
+  robots: {
+    index: false,
+    follow: true,
+  },
   openGraph: {
     title,
     description,
