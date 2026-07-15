@@ -506,7 +506,7 @@ export default function TaikyokuApp() {
             >
               結びを見る
             </button>
-            <a href="https://awaicommons.com/">© 2026 AWAI Commons</a>
+            <Link href="/">© 2026 AWAI Commons</Link>
           </footer>
         </>
       ) : null}
@@ -747,12 +747,12 @@ export default function TaikyokuApp() {
           ) : null}
           <div className="tk-stage-copy is-bottom is-ending">
             <p>複雑さの根にあるのは、陰と陽。</p>
-            <a href="https://awaicommons.com/hakke" className="tk-primary-link">
+            <Link href="/hakke" className="tk-primary-link">
               <span>八卦を手でつくる</span>
               <svg viewBox="0 0 24 24" aria-hidden>
                 <path d="M5 12h14m-5-5 5 5-5 5" />
               </svg>
-            </a>
+            </Link>
           </div>
           <button
             type="button"
