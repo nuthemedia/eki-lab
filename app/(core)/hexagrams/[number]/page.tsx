@@ -8,6 +8,7 @@ import {
 } from "@/domain/iching/hexagrams";
 import { HEXAGRAM_TEXTS } from "@/domain/iching/hexagramTexts";
 import { HEXAGRAM_DICTIONARY } from "@/domain/iching/hexagramDictionary";
+import { hexagramSeo } from "@/domain/iching/hexagramSeo";
 import { relationsOf } from "@/domain/iching/relations";
 import HexagramDetail, {
   type HexagramDetailData,
@@ -29,16 +30,34 @@ export async function generateMetadata({ params }: HexagramPageProps): Promise<M
   const { number: raw } = await params;
   const number = parseHexagramNumber(raw);
   if (!number) return { title: "卦が見つかりません" };
-  const hexagram = HEXAGRAMS_BY_NUMBER[number];
-  const entry = HEXAGRAM_DICTIONARY[number];
-  const title = `第${number}卦 ${hexagram.name}（${hexagram.reading}）｜易経・六十四卦辞典`;
-  const description = `${entry.essence}。${entry.keywords.join("・")}。卦辞・爻辞と現代語の解説、関係する卦を紹介します。`;
+  const { title, description, keywords, imageAlt } = hexagramSeo(number);
+  const imageUrl = `${siteUrl}/api/hexagrams/${number}/social-image`;
   return {
     title,
     description,
+    keywords,
     alternates: { canonical: `/hexagrams/${number}` },
-    openGraph: { title, description, url: `${siteUrl}/hexagrams/${number}`, siteName, locale: "ja_JP", type: "article" },
-    twitter: { card: "summary", title, description },
+    authors: [{ name: "AWAI Commons", url: siteUrl }],
+    creator: "AWAI Commons",
+    publisher: "AWAI Commons",
+    category: "education",
+    robots: { index: true, follow: true },
+    openGraph: {
+      title,
+      description,
+      url: `${siteUrl}/hexagrams/${number}`,
+      siteName,
+      locale: "ja_JP",
+      type: "article",
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: imageAlt }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      creator: "@AWAIcommons",
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: imageAlt }],
+    },
   };
 }
 
@@ -96,5 +115,59 @@ export default async function HexagramPage({ params }: HexagramPageProps) {
     next: number < 64 ? HEXAGRAMS_BY_NUMBER[number + 1] : undefined,
   };
 
-  return <HexagramDetail data={data} />;
+  const pageUrl = `${siteUrl}/hexagrams/${number}`;
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: `第${number}卦 ${hexagram.name}（${hexagram.reading}）`,
+    description: hexagramSeo(number).description,
+    url: pageUrl,
+    inLanguage: "ja",
+    isPartOf: {
+      "@type": "CollectionPage",
+      name: "易経・六十四卦辞典",
+      url: `${siteUrl}/hexagrams`,
+    },
+    mainEntity: {
+      "@type": "DefinedTerm",
+      name: hexagram.name,
+      alternateName: hexagram.reading,
+      description: entry.essence,
+      termCode: String(number),
+      inDefinedTermSet: `${siteUrl}/hexagrams`,
+    },
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "AWAI Commons",
+          item: siteUrl,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "易経・六十四卦辞典",
+          item: `${siteUrl}/hexagrams`,
+        },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: `第${number}卦 ${hexagram.name}`,
+          item: pageUrl,
+        },
+      ],
+    },
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <HexagramDetail data={data} />
+    </>
+  );
 }

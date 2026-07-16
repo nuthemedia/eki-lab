@@ -7,7 +7,7 @@ import { HEXAGRAM_DICTIONARY } from "@/domain/iching/hexagramDictionary";
 
 const title = "AWAI Commons｜易を学び、変化を見る";
 const description =
-  "AWAI Commonsは、八卦をつくって学ぶHAKKEをはじめ、易を手を動かして体験するアプリを公開しています。";
+  "AWAI Commonsは、八卦をつくって学ぶHAKKEや易経・六十四卦辞典など、易を手を動かして体験するアプリを公開しています。";
 
 export const metadata: Metadata = {
   title: {
@@ -21,6 +21,8 @@ export const metadata: Metadata = {
     "易経",
     "I Ching",
     "八卦",
+    "六十四卦",
+    "易経・六十四卦辞典",
     "Hakke",
     "古典",
   ],
@@ -112,6 +114,19 @@ export default function AwaiCommonsHomePage() {
               問いを立て、三枚のコインを六回投げて、卦を読む。
             </span>
             <span className="awai-coin-cta">占いをはじめる →</span>
+          </span>
+        </Link>
+
+        <Link href="/hexagrams" className="ik-home-card awai-hexagrams-card">
+          <span className="ik-home-card-body">
+            <span className="ik-home-card-label">HEXAGRAM DICTIONARY</span>
+            <span id="hexagrams-title" className="ik-home-card-title">
+              易経・六十四卦辞典
+            </span>
+            <span className="ik-home-card-desc">
+              上下の八卦から六十四卦を探し、卦辞・爻辞と現代語を読む。
+            </span>
+            <span className="awai-hexagrams-cta">辞典をひらく →</span>
           </span>
         </Link>
       </section>

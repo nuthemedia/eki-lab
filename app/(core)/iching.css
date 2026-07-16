@@ -1908,7 +1908,8 @@ a.ik-dict-relation-card:hover {
 
 .awai-taikyoku-card,
 .awai-hakke-card,
-.awai-coin-card {
+.awai-coin-card,
+.awai-hexagrams-card {
   border-radius: 24px;
   background: #fff;
   box-shadow: 0 8px 24px rgb(43 46 56 / 7%);
@@ -1939,7 +1940,8 @@ a.ik-dict-relation-card:hover {
 
 .awai-taikyoku-cta,
 .awai-hakke-cta,
-.awai-coin-cta {
+.awai-coin-cta,
+.awai-hexagrams-cta {
   align-self: flex-start;
   min-height: 48px;
   margin-top: 12px;
@@ -1969,6 +1971,38 @@ a.ik-dict-relation-card:hover {
   border: 1px solid #b58a42;
   background: #0f4c45;
   box-shadow: inset 0 1px rgb(255 255 255 / 18%);
+}
+
+.ik-home-light .awai-hexagrams-card {
+  position: relative;
+  overflow: hidden;
+  border-color: rgb(85 96 216 / 26%);
+  background:
+    linear-gradient(90deg, transparent 0 84%, rgb(49 53 66 / 6%) 84% 86%, transparent 86%),
+    radial-gradient(circle at 100% 0%, rgb(204 211 255 / 48%), transparent 40%),
+    #fff;
+}
+
+.awai-hexagrams-card::after {
+  content: "";
+  position: absolute;
+  right: 24px;
+  bottom: 26px;
+  width: 58px;
+  height: 44px;
+  opacity: 0.18;
+  background: repeating-linear-gradient(
+    to bottom,
+    #313542 0 4px,
+    transparent 4px 8px
+  );
+  pointer-events: none;
+}
+
+.awai-hexagrams-cta {
+  position: relative;
+  z-index: 1;
+  background: #5560d8;
 }
 
 .awai-about {

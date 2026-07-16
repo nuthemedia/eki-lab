@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { siteUrl } from "@/lib/seo";
+import { siteUrl } from "../lib/seo";
 
 const coinLanguages = {
   ja: `${siteUrl}/coin`,
@@ -7,6 +7,11 @@ const coinLanguages = {
 };
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  const hexagramPages: MetadataRoute.Sitemap = Array.from(
+    { length: 64 },
+    (_, index) => ({ url: `${siteUrl}/hexagrams/${index + 1}` }),
+  );
+
   return [
     { url: siteUrl },
     { url: `${siteUrl}/taikyoku` },
@@ -19,5 +24,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${siteUrl}/coin/en`,
       alternates: { languages: coinLanguages },
     },
+    { url: `${siteUrl}/hexagrams` },
+    ...hexagramPages,
   ];
 }
