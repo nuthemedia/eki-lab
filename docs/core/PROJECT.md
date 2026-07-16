@@ -4,7 +4,7 @@
 
 Route: `/ask`(メインフロー)、`/formal`・`/dice`(問いなしのクイック立卦)、`/hexagrams`・`/hexagrams/[number]`(64卦AI辞典)、`/card`・`/card/r/[code]`(卦カード=ライト入口+SNS共有)
 
-`/`はAWAI Commonsの紹介ページであり、この母体機能の入口ではない。母体ルートは削除せず直接URLで利用できる状態を維持するが、トップ導線・sitemap・検索結果からは外す(`noindex, follow`)。公開プロダクトはTaikyoku・Hakke・コイン易。
+`/`はAWAI Commonsの紹介ページであり、公開プロダクト「易有太極」・「HAKKE」・「コイン易占い」・「易経・六十四卦辞典」への入口。`/ask`・`/formal`・`/dice`・`/card`は削除せず直接URLで利用できる状態を維持するが、トップ導線・sitemap・検索結果からは外す(`noindex, follow`)。
 
 ## Purpose
 
