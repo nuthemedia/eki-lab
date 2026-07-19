@@ -2133,8 +2133,9 @@ a.ik-dict-relation-card:hover {
 .awai-about {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 22px 20px;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
   border: 1px solid rgb(85 96 216 / 16%);
   border-radius: 22px;
   background: #fff;
@@ -2142,38 +2143,110 @@ a.ik-dict-relation-card:hover {
   text-align: left;
 }
 
+.awai-about-content {
+  padding: 22px 20px 20px;
+}
+
 .awai-about h2 {
-  color: #5560d8;
+  color: var(--ik-paper);
   font-size: clamp(20px, 5.8vw, 25px);
   line-height: 1.4;
 }
 
 .awai-about .ik-home-about-copy {
   max-width: 38em;
-  gap: 5px;
+  gap: 10px;
+  margin-top: 14px;
   color: var(--ik-paper);
   font-size: 13px;
   line-height: 1.75;
 }
 
-.awai-note {
+.awai-about-link {
+  min-height: 56px;
+  padding: 0 20px;
+  border-top: 1px solid var(--ik-line);
+  color: #5560d8;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 700;
 }
 
-.awai-note-link {
-  min-height: 48px;
-  padding: 0 24px;
-  border: 1px solid var(--ik-line);
-  border-radius: 999px;
-  background: #fff;
+.awai-about-link svg,
+.awai-reading-list svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  stroke-width: 2;
+}
+
+.awai-reading {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-inline: 4px;
+}
+
+.awai-reading h2 {
+  margin: 0;
   color: var(--ik-paper);
+  font-size: clamp(20px, 5.5vw, 24px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+}
+
+.awai-reading-list {
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--ik-line);
+  list-style: none;
+}
+
+.awai-reading-list li {
+  border-bottom: 1px solid var(--ik-line);
+}
+
+.awai-reading-list a {
+  min-height: 64px;
+  padding: 10px 4px;
+  color: var(--ik-paper);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.55;
+}
+
+.awai-reading-list a span {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.awai-reading-list svg {
+  color: #5560d8;
+}
+
+.awai-reading-all {
+  min-height: 48px;
+  margin: 0 auto;
+  padding: 0 28px;
+  border: 1px solid rgb(85 96 216 / 58%);
+  border-radius: 999px;
+  color: #5560d8;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .awai-x-link {
@@ -2197,8 +2270,21 @@ a.ik-dict-relation-card:hover {
   line-height: 1;
 }
 
-.awai-note-link:hover {
-  border-color: color-mix(in srgb, #5560d8 48%, var(--ik-line));
+.awai-about-link:hover,
+.awai-reading-list a:hover {
+  color: #4650c2;
+}
+
+.awai-reading-all:hover {
+  border-color: #5560d8;
+  background: rgb(85 96 216 / 5%);
+}
+
+.awai-about-link:focus-visible,
+.awai-reading-list a:focus-visible,
+.awai-reading-all:focus-visible {
+  outline: 3px solid rgb(85 96 216 / 32%);
+  outline-offset: 3px;
 }
 
 .awai-x-link:hover {
@@ -2319,7 +2405,19 @@ a.ik-dict-relation-card:hover {
   }
 
   .awai-about {
-    padding: 20px 18px;
+    border-radius: 20px;
+  }
+
+  .awai-about-content {
+    padding: 20px 18px 18px;
+  }
+
+  .awai-about-link {
+    padding-inline: 18px;
+  }
+
+  .awai-reading {
+    padding-inline: 2px;
   }
 }
 

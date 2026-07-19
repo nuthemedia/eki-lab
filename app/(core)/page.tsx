@@ -11,13 +11,18 @@ import {
   Scale,
 } from "lucide-react";
 import { siteName, siteUrl } from "@/lib/seo";
+import {
+  getLatestNoteArticles,
+  NOTE_BEGINNER_URL,
+  NOTE_PROFILE_URL,
+} from "@/lib/noteFeed";
 import { HexagramWheel, type WheelHexagram } from "@/components/core/home/HexagramWheel";
 import { HEXAGRAMS_BY_NUMBER, linesOfHexagram } from "@/domain/iching/hexagrams";
 import { HEXAGRAM_DICTIONARY } from "@/domain/iching/hexagramDictionary";
 
 const title = "AWAI Commons｜易を学び、変化を見る";
 const description =
-  "AWAI Commonsは、八卦をつくって学ぶHAKKEや易経・六十四卦辞典など、易を手を動かして体験するアプリを公開しています。";
+  "AWAI Commonsは、易の知恵を現代の暮らしに生かすための学びと体験を公開しています。八卦や六十四卦を、手を動かしながら学べます。";
 
 export const metadata: Metadata = {
   title: {
@@ -71,7 +76,9 @@ function buildWheelHexagrams(): WheelHexagram[] {
   });
 }
 
-export default function AwaiCommonsHomePage() {
+export default async function AwaiCommonsHomePage() {
+  const noteArticles = await getLatestNoteArticles();
+
   return (
     <main className="ik-top ik-home ik-home-light awai-home">
       <header className="awai-brand">
@@ -137,9 +144,7 @@ export default function AwaiCommonsHomePage() {
                 1から64へ、易の生成をたどる。
               </span>
             </span>
-            <span className="awai-product-cta">
-              詳しく見る
-            </span>
+            <span className="awai-product-cta">体験する</span>
           </Link>
 
           <Link
@@ -212,26 +217,54 @@ export default function AwaiCommonsHomePage() {
       </section>
 
       <section className="awai-about" aria-labelledby="about-title">
-        <h2 id="about-title">なぜ今、易を学ぶのか。</h2>
-        <div className="ik-home-about-copy">
-          <p>
-            変化の速い時代だからこそ、物事の流れを読み、自分の軸で選び取る力が求められます。
-          </p>
-          <p>易は、古くて新しい「生きる知恵」。</p>
-          <p>あなたの毎日に、静かな指針をもたらします。</p>
+        <div className="awai-about-content">
+          <h2 id="about-title">易の知恵を、暮らしに生かす。</h2>
+          <div className="ik-home-about-copy">
+            <p>
+              変化が速く、答えを急ぎがちな日々。そんなとき、いったん立ち止まって状況を眺める視点が助けになることがあります。
+            </p>
+            <p>
+              易は未来を当てるだけではなく、いまの偏りや変化の向きを見つめ、進むか、待つか、整えるかを考えるための知恵です。
+            </p>
+            <p>
+              仕事や人間関係、日々の決断、休むこと。少し距離を置いて状況を眺め、自分なりの一歩を選ぶために生かせます。
+            </p>
+          </div>
         </div>
-      </section>
-
-      <nav className="awai-note" aria-label="外部リンク">
         <a
-          href="https://note.com/awaicommons"
-          className="awai-note-link"
+          href={NOTE_BEGINNER_URL}
+          className="awai-about-link"
           target="_blank"
           rel="noreferrer"
         >
-          AWAI CommonsのNote →
+          <span>はじめての方へ</span>
+          <ArrowRight aria-hidden="true" />
         </a>
-      </nav>
+      </section>
+
+      <section className="awai-reading" aria-labelledby="reading-title">
+        <h2 id="reading-title">読みもの</h2>
+        {noteArticles.length > 0 && (
+          <ul className="awai-reading-list">
+            {noteArticles.map((article) => (
+              <li key={article.url}>
+                <a href={article.url} target="_blank" rel="noreferrer">
+                  <span>{article.title}</span>
+                  <ArrowRight aria-hidden="true" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+        <a
+          href={NOTE_PROFILE_URL}
+          className="awai-reading-all"
+          target="_blank"
+          rel="noreferrer"
+        >
+          すべての記事を読む
+        </a>
+      </section>
 
       <footer className="awai-footer">
         <strong>AWAI Commons</strong>

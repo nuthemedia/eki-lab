@@ -28,7 +28,7 @@ Likely implementation paths (in addition to the above):
 
 Notes:
 
-- `/` is the AWAI Commons brand page. It links to the public products 易有太極, HAKKE, コイン易占い, and 易経・六十四卦辞典. Do not restore public links to `/ask`, `/formal`, `/dice`, or `/card`.
+- `/` is the AWAI Commons brand page. It links to the four public products, explains the concept「易の知恵を、暮らしに生かす。」, and shows up to two recent Note articles from the cached RSS feed. Do not restore public links to `/ask`, `/formal`, `/dice`, or `/card`.
 - `/hexagrams` and `/hexagrams/[number]` are public, indexed routes. The other core routes remain directly accessible but are intentionally absent from the public sitemap and use `noindex, follow`.
 - The main flow at `/ask` is: worry input → LLM question refinement → inquiry confirmation → casting → LLM interpretation → save. LLM calls are limited to those two API routes.
 - LLM is OpenAI via the Responses API. Env: `OPENAI_API_KEY` (required for LLM output), optional `OPENAI_ICHING_REFINE_MODEL` (default gpt-5-nano), `OPENAI_ICHING_INTERPRET_MODEL` (default gpt-5-mini), and `OPENAI_COIN_INTERPRET_MODEL` (default gpt-5.6-luna). Production usage limits require `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`, or the Vercel Marketplace equivalents `KV_REST_API_URL` / `KV_REST_API_TOKEN`. **Without a key, on quota exhaustion, or when production Redis is unavailable, everything falls back to templates and the flow must still complete** — preserve this property when changing the routes.
@@ -59,7 +59,7 @@ Verification:
 - `curl -I http://127.0.0.1:3000/card` (200); `/card/r/12-31-4` (200); `/card/r/999-99-9` (404)
 - `curl -I "http://127.0.0.1:3000/api/card-image?code=12-31-4"` (200 image/png) and `/card/r/12-31-4/opengraph-image` (200)
 - Walk `/card` at 375px: five candidates → shuffle → pick → short casting animation → card → share panel (save image, X link, copy link) → CTA to `/ask`
-- Open `/` at 320px, 390px, and 430px: the wheel is followed by `易から見えてくるもの`, the compact 3-perspective panel, then a centered `易を学ぶ 四つの入口` heading above the one-line flow `学ぶ → つくる → 占う → 読む` and 4 horizontal product rows. The flow-to-card gap must be 8px. Confirm there are no links to `/ask`, `/formal`, `/dice`, or `/card`. Open `/ask` directly and walk the flow: worry input → candidates → confirm → mode select → casting animation → interpretation sections → save → history re-read. Quick modes at `/formal` and `/dice` still play standalone with playback controls.
+- Open `/` at 320px, 390px, and 430px: the wheel is followed by `易から見えてくるもの`, the compact 3-perspective panel, then a centered `易を学ぶ 四つの入口` heading above the one-line flow `学ぶ → つくる → 占う → 読む` and 4 horizontal product rows. The flow-to-card gap must be 8px. After the products, confirm the living-wisdom concept card, fixed beginner link, up to two RSS article links, and Note profile link. Confirm there are no links to `/ask`, `/formal`, `/dice`, or `/card`. Open `/ask` directly and walk the flow: worry input → candidates → confirm → mode select → casting animation → interpretation sections → save → history re-read. Quick modes at `/formal` and `/dice` still play standalone with playback controls.
 - Verify `/sitemap.xml` contains `/`, `/taikyoku`, `/hakke`, `/coin`, `/coin/en`, `/hexagrams`, and `/hexagrams/1` through `/hexagrams/64`. Verify only the non-public core HTML pages emit `noindex, follow` while remaining directly accessible.
 
 Use `npm run dev` first if the local server is not already running.
