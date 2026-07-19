@@ -18,6 +18,7 @@ import {
 import {
   detailReflectionPrompts, guidanceForCategory, type CoinCategory,
 } from "@/lib/coinInterpretation";
+import CoinHelpDialog from "./CoinHelpDialog";
 
 type Phase = "question" | "casting" | "result" | "detail";
 type Category = CoinCategory;
@@ -59,11 +60,18 @@ function IconButton({ muted, onClick, inToolbar = false }: { muted: boolean; onC
   </button>;
 }
 
-function CoinTopbar({ label, backLabel, onBack, muted, onMute, disabled = false }: { label: string; backLabel: string; onBack: () => void; muted: boolean; onMute: () => void; disabled?: boolean }) {
+function HelpButton({ onClick, inToolbar = false, disabled = false }: { onClick: () => void; inToolbar?: boolean; disabled?: boolean }) {
+  return <button type="button" className={`coin-help-trigger${inToolbar ? " is-toolbar" : ""}`} onClick={onClick} disabled={disabled} aria-label="コイン易占いのやり方">?</button>;
+}
+
+function CoinTopbar({ label, backLabel, onBack, muted, onMute, onHelp, disabled = false }: { label: string; backLabel: string; onBack: () => void; muted: boolean; onMute: () => void; onHelp: () => void; disabled?: boolean }) {
   return <div className="coin-topbar">
     <button className="coin-back" onClick={onBack} disabled={disabled}>← {backLabel}</button>
     <span>{label}</span>
-    <IconButton muted={muted} onClick={onMute} inToolbar />
+    <div className="coin-topbar-tools">
+      <HelpButton onClick={onHelp} inToolbar disabled={disabled} />
+      <IconButton muted={muted} onClick={onMute} inToolbar />
+    </div>
   </div>;
 }
 
@@ -128,6 +136,7 @@ export default function CoinApp() {
   const [aiError, setAiError] = useState<string | null>(null);
   const [resumeSession, setResumeSession] = useState<CoinSessionV1 | null>(null);
   const [announcement, setAnnouncement] = useState("");
+  const [helpOpen, setHelpOpen] = useState(false);
   const screenTitleRef = useRef<HTMLHeadingElement>(null);
   const rollTimersRef = useRef<number[]>([]);
   const completionTimerRef = useRef<number | null>(null);
@@ -261,7 +270,8 @@ export default function CoinApp() {
   };
 
   return <main className="coin-app">
-    {phase === "question" && <IconButton muted={muted} onClick={toggleMute} />}
+    {phase === "question" && <><HelpButton onClick={() => setHelpOpen(true)} /><IconButton muted={muted} onClick={toggleMute} /></>}
+    <CoinHelpDialog locale="ja" open={helpOpen} onClose={() => setHelpOpen(false)} />
     <div className="coin-sr-only" aria-live="polite" aria-atomic="true">{announcement}</div>
     <AnimatePresence mode="wait">
       {phase === "question" && <motion.section key="question" className="coin-screen coin-question" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -275,7 +285,7 @@ export default function CoinApp() {
       </motion.section>}
 
       {phase === "casting" && <motion.section key="casting" className="coin-screen coin-casting" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-        <CoinTopbar label={`${Math.min(casts.length + 1, 6)}投目 / 6`} backLabel="問いに戻る" onBack={() => setPhase("question")} muted={muted} onMute={toggleMute} disabled={rolling || completing} /><h1 ref={screenTitleRef} tabIndex={-1}>コイン易占い</h1>
+        <CoinTopbar label={`${Math.min(casts.length + 1, 6)}投目 / 6`} backLabel="問いに戻る" onBack={() => setPhase("question")} muted={muted} onMute={toggleMute} onHelp={() => setHelpOpen(true)} disabled={rolling || completing} /><h1 ref={screenTitleRef} tabIndex={-1}>コイン易占い</h1>
         <div className="coin-tabs" role="tablist" aria-label="起卦方法"><button role="tab" aria-selected={mode === "manual"} className={mode === "manual" ? "is-active" : ""} onClick={() => setMode("manual")} disabled={rolling || completing}>コインの結果を入力</button><button role="tab" aria-selected={mode === "auto"} className={mode === "auto" ? "is-active" : ""} onClick={() => setMode("auto")} disabled={rolling || completing}>コインが手元にない人はこちら</button></div>
         <div className="coin-progress">{completing ? <><h2>六本の爻が揃いました</h2><p>結果を整えています。</p></> : <><h2>{POSITION_NAMES[Math.min(casts.length, 5)]}の爻を作ります</h2><p>{mode === "manual" ? "手元のコインを三枚投げて、出た表裏を入力してください。" : "アプリ内で三枚のコインを投げます。"}</p></>}</div>
         <div className="coin-cast-stage"><div className="coin-discs">{coins.map((face, index) => <CoinButton key={index} index={index} face={face} flipping={rolling && index >= settledCoinCount} onClick={mode === "manual" && !completing ? () => toggleCoin(index) : undefined} />)}</div><div className="coin-sum">表{coins.filter(c => c === "heads").length}枚 = {makeCoinCast(coins).value} = {COIN_LINE_LABELS[makeCoinCast(coins).value]}</div></div>
@@ -284,7 +294,7 @@ export default function CoinApp() {
       </motion.section>}
 
       {(phase === "result" || phase === "detail") && reading && primary && dictionary && text && <motion.section key={phase} className={`coin-screen coin-${phase}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-        <CoinTopbar label={phase === "detail" ? "卦から読む" : "結果"} backLabel={phase === "detail" ? "結果に戻る" : "はじめに戻る"} onBack={() => phase === "detail" ? setPhase("result") : reset()} muted={muted} onMute={toggleMute} /><h1 ref={screenTitleRef} tabIndex={-1}>{phase === "detail" ? "卦から読む" : "コイン易占い"}</h1>
+        <CoinTopbar label={phase === "detail" ? "卦から読む" : "結果"} backLabel={phase === "detail" ? "結果に戻る" : "はじめに戻る"} onBack={() => phase === "detail" ? setPhase("result") : reset()} muted={muted} onMute={toggleMute} onHelp={() => setHelpOpen(true)} /><h1 ref={screenTitleRef} tabIndex={-1}>{phase === "detail" ? "卦から読む" : "コイン易占い"}</h1>
         {phase === "result" ? <>
           <div className="coin-inquiry"><small>あなたの問い</small><p>{question}</p><span>{category}</span></div>
           <div className="coin-glass coin-result-card"><ReadingPair casts={casts} /><div className="coin-change-label">{reading.changingLineIndexes.length === 0 ? "変爻なし" : reading.changingLineIndexes.length === 6 ? "六爻すべてが変化" : reading.changingLineIndexes.length >= 3 ? `変爻${reading.changingLineIndexes.length}本（${reading.changingLineIndexes.map(i => LINE_LABELS[i]).join("・")}）` : `変爻　${reading.changingLineIndexes.map(i => LINE_LABELS[i]).join("・")}`}</div><div className="coin-keywords">{dictionary.keywords.map((word, i) => <motion.span key={word} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .1 * i }}>{word}</motion.span>)}</div><p className="coin-essence">{dictionary.essence}</p><blockquote>{text.judgment.original}<cite>— 『易経』第{primary.number}卦</cite></blockquote></div>
