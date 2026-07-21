@@ -5,8 +5,8 @@ import {
 } from "./audioState";
 
 describe("kotoba audio state", () => {
-  it("starts muted until the user explicitly enables sound", () => {
-    expect(DEFAULT_KOTOBA_AUDIO_STATE).toEqual({ enabled: false, playback: "muted" });
+  it("always starts on and waiting for playback", () => {
+    expect(DEFAULT_KOTOBA_AUDIO_STATE).toEqual({ enabled: true, playback: "pending" });
   });
 
   it("can mute and enable playback again", () => {

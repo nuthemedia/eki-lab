@@ -14,8 +14,8 @@ export type KotobaAudioEvent =
   | { type: "mute" };
 
 export const DEFAULT_KOTOBA_AUDIO_STATE: KotobaAudioState = {
-  enabled: false,
-  playback: "muted",
+  enabled: true,
+  playback: "pending",
 };
 
 export function reduceKotobaAudioState(

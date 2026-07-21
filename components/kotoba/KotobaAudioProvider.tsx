@@ -57,7 +57,7 @@ function createAudioNodes(): AudioNodes {
   lowTone.frequency.value = 54;
   lowGain.gain.value = 0.012;
   music.loop = true;
-  music.preload = "none";
+  music.preload = "auto";
   music.volume = 0;
 
   lowTone.connect(lowGain).connect(master);
@@ -196,6 +196,25 @@ export function KotobaAudioProvider({ children }: { children: ReactNode }) {
     oscillator.start(now);
     oscillator.stop(now + 0.62);
   }, []);
+
+  useEffect(() => {
+    startPlayback();
+  }, [startPlayback]);
+
+  useEffect(() => {
+    if (!state.enabled || state.playback !== "pending") return;
+    const unlock = (event: Event) => {
+      const target = event.target;
+      if (target instanceof Element && target.closest("[data-kotoba-sound]")) return;
+      startPlayback();
+    };
+    document.addEventListener("click", unlock, { capture: true });
+    document.addEventListener("keydown", unlock, { capture: true });
+    return () => {
+      document.removeEventListener("click", unlock, { capture: true });
+      document.removeEventListener("keydown", unlock, { capture: true });
+    };
+  }, [startPlayback, state.enabled, state.playback]);
 
   useEffect(
     () => () => {
