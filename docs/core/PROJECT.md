@@ -4,7 +4,7 @@
 
 Route: `/ask`(メインフロー)、`/formal`・`/dice`(問いなしのクイック立卦)、`/hexagrams`・`/hexagrams/[number]`(64卦AI辞典)、`/card`・`/card/r/[code]`(卦カード=ライト入口+SNS共有)
 
-`/`はAWAI Commonsの紹介ページであり、「易の知恵を、暮らしに生かす。」という目的、公開4プロダクト、Noteの学習記事への入口。`/ask`・`/formal`・`/dice`・`/card`は削除せず直接URLで利用できる状態を維持するが、トップ導線・sitemap・検索結果からは外す(`noindex, follow`)。
+`/`はAWAI Commonsの紹介ページであり、「易の知恵を、暮らしに生かす」を大テーマに、公開4プロダクト、「いま易を学ぶ理由」、Noteの学習記事を案内する。`/ask`・`/formal`・`/dice`・`/card`は削除せず直接URLで利用できる状態を維持するが、トップ導線・sitemap・検索結果からは外す(`noindex, follow`)。
 
 ## Purpose
 

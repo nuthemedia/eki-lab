@@ -87,7 +87,7 @@ export default async function AwaiCommonsHomePage() {
       </header>
 
       <section className="awai-hero">
-        <h2>古典を、触れるかたちに。</h2>
+        <h2>易の知恵を、暮らしに生かす</h2>
         <p className="awai-hero-tagline">易を学び、変化を見る。</p>
         <span className="awai-hero-en">Learn the I Ching. Read change.</span>
       </section>
@@ -218,16 +218,10 @@ export default async function AwaiCommonsHomePage() {
 
       <section className="awai-about" aria-labelledby="about-title">
         <div className="awai-about-content">
-          <h2 id="about-title">易の知恵を、暮らしに生かす。</h2>
+          <h2 id="about-title">いま易を学ぶ理由</h2>
           <div className="ik-home-about-copy">
             <p>
-              変化が速く、答えを急ぎがちな日々。そんなとき、いったん立ち止まって状況を眺める視点が助けになることがあります。
-            </p>
-            <p>
-              易は未来を当てるだけではなく、いまの偏りや変化の向きを見つめ、進むか、待つか、整えるかを考えるための知恵です。
-            </p>
-            <p>
-              仕事や人間関係、日々の決断、休むこと。少し距離を置いて状況を眺め、自分なりの一歩を選ぶために生かせます。
+              変化が速く、答えを急ぎがちな今。易は未来を決めるものではなく、立ち止まって状況を眺め、次の一歩を自分で選ぶための手がかりになります。
             </p>
           </div>
         </div>

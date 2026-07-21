@@ -28,7 +28,7 @@ Likely implementation paths (in addition to the above):
 
 Notes:
 
-- `/` is the AWAI Commons brand page. It links to the four public products, explains the concept「易の知恵を、暮らしに生かす。」, and shows up to two recent Note articles from the cached RSS feed. Do not restore public links to `/ask`, `/formal`, `/dice`, or `/card`.
+- `/` is the AWAI Commons brand page. Its main theme is「易の知恵を、暮らしに生かす」; it links to the four public products, briefly explains「いま易を学ぶ理由」, and shows up to two recent Note articles from the cached RSS feed. Do not restore public links to `/ask`, `/formal`, `/dice`, or `/card`.
 - `/hexagrams` and `/hexagrams/[number]` are public, indexed routes. The other core routes remain directly accessible but are intentionally absent from the public sitemap and use `noindex, follow`.
 - The main flow at `/ask` is: worry input → LLM question refinement → inquiry confirmation → casting → LLM interpretation → save. LLM calls are limited to those two API routes.
 - LLM is OpenAI via the Responses API. Env: `OPENAI_API_KEY` (required for LLM output), optional `OPENAI_ICHING_REFINE_MODEL` (default gpt-5-nano), `OPENAI_ICHING_INTERPRET_MODEL` (default gpt-5-mini), and `OPENAI_COIN_INTERPRET_MODEL` (default gpt-5.6-luna). Production usage limits require `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`, or the Vercel Marketplace equivalents `KV_REST_API_URL` / `KV_REST_API_TOKEN`. **Without a key, on quota exhaustion, or when production Redis is unavailable, everything falls back to templates and the flow must still complete** — preserve this property when changing the routes.

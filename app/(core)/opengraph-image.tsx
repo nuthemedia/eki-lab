@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "AWAI Commons — 易を、手を動かして学ぶ。";
+export const alt = "AWAI Commons — 易の知恵を、暮らしに生かす。";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -53,7 +53,7 @@ export default function Image() {
           </span>
         </div>
         <div style={{ display: "flex", color: "#5560d8", fontSize: 38, fontWeight: 600 }}>
-          易を、手を動かして学ぶ。
+          易の知恵を、暮らしに生かす。
         </div>
       </div>
 
