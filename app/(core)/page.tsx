@@ -23,7 +23,7 @@ import { HEXAGRAM_DICTIONARY } from "@/domain/iching/hexagramDictionary";
 
 const title = "AWAI Commons｜易を学び、変化を見る";
 const description =
-  "AWAI Commonsは、易の知恵を現代の暮らしに生かすための学びと体験を公開しています。八卦や六十四卦を、手を動かしながら学べます。";
+  "AWAI Commonsは、易の知恵を暮らしに生かすための学びと体験を公開しています。易有太極、HAKKE、易のことば、コイン易占い、易経・六十四卦辞典を通して、変化を見る力を育てます。";
 
 export const metadata: Metadata = {
   title: {
@@ -40,6 +40,7 @@ export const metadata: Metadata = {
     "六十四卦",
     "易経・六十四卦辞典",
     "Hakke",
+    "易のことば",
     "古典",
   ],
   authors: [{ name: "AWAI Commons", url: siteUrl }],
@@ -151,6 +152,25 @@ export default async function AwaiCommonsHomePage() {
           </Link>
 
           <Link
+            href="/kotoba"
+            className="ik-home-card awai-product-card awai-kotoba-card"
+          >
+            <span className="awai-product-visual" aria-hidden="true">
+              <BookOpenText />
+            </span>
+            <span className="ik-home-card-body">
+              <span className="ik-home-card-label">KOTOBA</span>
+              <span id="kotoba-title" className="ik-home-card-title">
+                易のことば
+              </span>
+              <span className="ik-home-card-desc">
+                易経の五つの句を、動くビジュアルで学ぶ。
+              </span>
+            </span>
+            <span className="awai-product-cta">体験する</span>
+          </Link>
+
+          <Link
             href="/hakke"
             className="ik-home-card awai-product-card awai-hakke-card"
           >
@@ -168,25 +188,6 @@ export default async function AwaiCommonsHomePage() {
             <span className="awai-product-cta">
               使ってみる
             </span>
-          </Link>
-
-          <Link
-            href="/kotoba"
-            className="ik-home-card awai-product-card awai-kotoba-card"
-          >
-            <span className="awai-product-visual" aria-hidden="true">
-              <BookOpenText />
-            </span>
-            <span className="ik-home-card-body">
-              <span className="ik-home-card-label">KOTOBA</span>
-              <span id="kotoba-title" className="ik-home-card-title">
-                易のことば
-              </span>
-              <span className="ik-home-card-desc">
-                易経の五つの句を、動くビジュアルで学ぶ。
-              </span>
-            </span>
-            <span className="awai-product-cta">体験する</span>
           </Link>
 
           <Link
