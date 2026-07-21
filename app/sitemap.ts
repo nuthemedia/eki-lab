@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { siteUrl } from "../lib/seo";
+import { KOTOBA_PASSAGES } from "../data/kotoba/passages";
 
 const coinLanguages = {
   ja: `${siteUrl}/coin`,
@@ -10,6 +11,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const hexagramPages: MetadataRoute.Sitemap = Array.from(
     { length: 64 },
     (_, index) => ({ url: `${siteUrl}/hexagrams/${index + 1}` }),
+  );
+  const kotobaPages: MetadataRoute.Sitemap = KOTOBA_PASSAGES.map(
+    ({ slug }) => ({ url: `${siteUrl}/kotoba/${slug}` }),
   );
 
   return [
@@ -26,5 +30,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     { url: `${siteUrl}/hexagrams` },
     ...hexagramPages,
+    { url: `${siteUrl}/kotoba` },
+    ...kotobaPages,
   ];
 }

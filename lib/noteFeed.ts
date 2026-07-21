@@ -70,14 +70,17 @@ export function parseNoteRss(xml: string, limit = 2): NoteArticle[] {
 }
 
 export async function getLatestNoteArticles(): Promise<NoteArticle[]> {
-  try {
-    const response = await fetch(NOTE_RSS_URL, {
-      next: { revalidate: 3600 },
-    });
-    if (!response.ok) return [];
-
-    return parseNoteRss(await response.text());
-  } catch {
-    return [];
+  const response = await fetch(NOTE_RSS_URL, {
+    next: { revalidate: 300 },
+  });
+  if (!response.ok) {
+    throw new Error(`Note RSS request failed: ${response.status}`);
   }
+
+  const articles = parseNoteRss(await response.text());
+  if (articles.length === 0) {
+    throw new Error("Note RSS did not contain any valid articles");
+  }
+
+  return articles;
 }

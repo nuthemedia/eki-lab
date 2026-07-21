@@ -2064,6 +2064,12 @@ a.ik-dict-relation-card:hover {
   background: linear-gradient(145deg, #373832, #171815);
 }
 
+.awai-kotoba-card .awai-product-visual {
+  border-color: rgb(168 216 255 / 32%);
+  color: #a8d8ff;
+  background: linear-gradient(145deg, #183247, #06111b);
+}
+
 .awai-coin-card .awai-product-visual {
   border-color: rgb(181 138 66 / 42%);
   background: #0f4c45;
@@ -2119,6 +2125,10 @@ a.ik-dict-relation-card:hover {
 
 .awai-hakke-card .awai-product-cta {
   background: #5560d8;
+}
+
+.awai-kotoba-card .awai-product-cta {
+  background: #183247;
 }
 
 .awai-coin-card .awai-product-cta {

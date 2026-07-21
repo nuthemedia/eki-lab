@@ -61,18 +61,47 @@ describe("parseNoteRss", () => {
 });
 
 describe("getLatestNoteArticles", () => {
-  it("RSS取得に失敗したら空配列へフォールバックする", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+  it("5分の再検証を指定してRSSを取得する", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(feed(item("最新記事", "https://note.com/awaicommons/n/latest")), {
+        status: 200,
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
 
-    await expect(getLatestNoteArticles()).resolves.toEqual([]);
+    await expect(getLatestNoteArticles()).resolves.toEqual([
+      { title: "最新記事", url: "https://note.com/awaicommons/n/latest" },
+    ]);
+    expect(fetchMock).toHaveBeenCalledWith("https://note.com/awaicommons/rss", {
+      next: { revalidate: 300 },
+    });
   });
 
-  it("不正XMLでも空配列へフォールバックする", async () => {
+  it("RSS取得に失敗したら再生成を失敗させる", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+
+    await expect(getLatestNoteArticles()).rejects.toThrow("offline");
+  });
+
+  it("RSSがHTTPエラーなら再生成を失敗させる", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response("unavailable", { status: 503 })),
+    );
+
+    await expect(getLatestNoteArticles()).rejects.toThrow(
+      "Note RSS request failed: 503",
+    );
+  });
+
+  it("不正XMLや有効な記事0件なら再生成を失敗させる", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(new Response("<rss><channel>", { status: 200 })),
     );
 
-    await expect(getLatestNoteArticles()).resolves.toEqual([]);
+    await expect(getLatestNoteArticles()).rejects.toThrow(
+      "Note RSS did not contain any valid articles",
+    );
   });
 });

@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   ArrowRight,
   BookOpen,
+  BookOpenText,
   Box,
   MapPin,
   Orbit,
@@ -63,6 +64,8 @@ export const metadata: Metadata = {
   },
 };
 
+export const revalidate = 300;
+
 function buildWheelHexagrams(): WheelHexagram[] {
   return Array.from({ length: 64 }, (_, i) => {
     const number = i + 1;
@@ -116,7 +119,7 @@ export default async function AwaiCommonsHomePage() {
       </section>
 
       <section className="awai-products" aria-labelledby="products-title">
-        <h2 id="products-title">易を学ぶ 四つの入口</h2>
+        <h2 id="products-title">易を学ぶ 五つの入口</h2>
         <div className="awai-learning-flow" aria-label="易を学ぶ流れ">
           <span>学ぶ</span>
           <ArrowRight aria-hidden="true" />
@@ -165,6 +168,25 @@ export default async function AwaiCommonsHomePage() {
             <span className="awai-product-cta">
               使ってみる
             </span>
+          </Link>
+
+          <Link
+            href="/kotoba"
+            className="ik-home-card awai-product-card awai-kotoba-card"
+          >
+            <span className="awai-product-visual" aria-hidden="true">
+              <BookOpenText />
+            </span>
+            <span className="ik-home-card-body">
+              <span className="ik-home-card-label">KOTOBA</span>
+              <span id="kotoba-title" className="ik-home-card-title">
+                易のことば
+              </span>
+              <span className="ik-home-card-desc">
+                易経の五つの句を、動くビジュアルで学ぶ。
+              </span>
+            </span>
+            <span className="awai-product-cta">体験する</span>
           </Link>
 
           <Link
